@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>題庫學習平台</title>
+<style>
+/* ============================================================
+   一、基礎樣式 / 主題色彩 (Dark Mode)
+   ============================================================ */
+:root{
+  --bg:#1A1A1A;
+  --bg-card:#242424;
+  --bg-card2:#2C2C2C;
+  --text:#F5F5F5;
+  --text-dim:#A8A8A8;
+  --gold:#D4AF37;
+  --gold-dim:#8a7426;
+  --danger:#C0524A;
+  --ok:#4F9A6A;
+  --radius:18px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;height:100%;}
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Heiti TC",sans-serif;
+  overflow-x:hidden;
+  -webkit-user-select:none; user-select:none;
+}
+button{font-family:inherit;}
+#app{max-width:520px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;position:relative;padding-bottom:24px;}
+
+/* 頂部列 */
+.topbar{
+  display:flex;align-items:center;gap:10px;
+  padding:16px 16px 10px 16px;position:sticky;top:0;z-index:20;
+  background:linear-gradient(var(--bg) 70%, transparent);
+}
+.topbar h1{font-size:20px;margin:0;font-weight:700;letter-spacing:.5px;flex:1;}
+.icon-btn{
+  width:40px;height:40px;border-radius:50%;border:1px solid #3a3a3a;
+  background:var(--bg-card);color:var(--text);display:flex;align-items:center;justify-content:center;
+  font-size:18px;cursor:pointer;flex-shrink:0;transition:.15s;
+}
+.icon-btn:active{transform:scale(.92);background:var(--bg-card2);}
+
+main{flex:1;padding:0 16px;}
+
+/* 卡片基本樣式 */
+.card{
+  background:var(--bg-card);
+  border-radius:var(--radius);
+  padding:18px;
+  margin-bottom:14px;
+  border:1px solid #2f2f2f;
+  transition:transform .15s, box-shadow .15s;
+}
+.card:active{transform:scale(.985);}
+
+/* 題庫列表卡片 */
+.bank-card{cursor:pointer;}
+.bank-card .bank-name{font-size:18px;font-weight:700;color:var(--gold);margin-bottom:8px;}
+.bank-stats{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.stat-pill{
+  background:var(--bg-card2);border-radius:12px;padding:6px 10px;font-size:12px;color:var(--text-dim);
+  display:flex;align-items:center;gap:4px;
+}
+.stat-pill b{color:var(--text);font-weight:700;}
+.progress-bar-bg{width:100%;height:6px;background:#3a3a3a;border-radius:6px;overflow:hidden;margin-top:10px;}
+.progress-bar-fill{height:100%;background:var(--gold);border-radius:6px;transition:width .3s;}
+
+/* 模式選擇按鈕 */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px;}
+.mode-btn{
+  background:var(--bg-card);border:1px solid #2f2f2f;border-radius:var(--radius);
+  padding:18px 10px;text-align:center;cursor:pointer;color:var(--text);
+}
+.mode-btn .emoji{font-size:26px;display:block;margin-bottom:6px;}
+.mode-btn .label{font-size:14px;font-weight:600;}
+.mode-btn:active{background:var(--bg-card2);}
+
+/* 大按鈕 */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  background:var(--gold);color:#1A1A1A;font-weight:700;border:none;
+  border-radius:14px;padding:14px 18px;font-size:15px;cursor:pointer;width:100%;
+}
+.btn:active{background:var(--gold-dim);}
+.btn.secondary{background:var(--bg-card2);color:var(--text);border:1px solid #3a3a3a;}
+.btn.danger{background:var(--danger);color:#fff;}
+.btn.ok{background:var(--ok);color:#fff;}
+.btn.small{padding:9px 14px;font-size:13px;width:auto;}
+
+.row{display:flex;gap:10px;}
+.row > *{flex:1;}
+
+/* 搜尋列 */
+.searchbar{
+  display:flex;align-items:center;gap:8px;background:var(--bg-card);border:1px solid #2f2f2f;
+  border-radius:14px;padding:10px 14px;margin-bottom:14px;
+}
+.searchbar input{
+  flex:1;background:transparent;border:none;outline:none;color:var(--text);font-size:15px;
+}
+.searchbar input::placeholder{color:var(--text-dim);}
+
+/* 篩選 chips */
+.chip-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:10px;margin-bottom:8px;-webkit-overflow-scrolling:touch;}
+.chip-row::-webkit-scrollbar{display:none;}
+.chip{
+  flex-shrink:0;padding:8px 14px;border-radius:20px;background:var(--bg-card2);color:var(--text-dim);
+  font-size:13px;border:1px solid #3a3a3a;cursor:pointer;white-space:nowrap;
+}
+.chip.active{background:var(--gold);color:#1A1A1A;border-color:var(--gold);font-weight:700;}
+
+/* 瀏覽模式題目卡 */
+.qa-card{position:relative;}
+.qa-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.qa-id{font-size:12px;color:var(--gold);font-weight:700;}
+.qa-tag{font-size:11px;color:var(--text-dim);background:var(--bg-card2);padding:3px 8px;border-radius:8px;}
+.qa-q{font-size:16px;font-weight:700;line-height:1.6;margin:6px 0 10px 0;}
+.qa-a{font-size:14.5px;line-height:1.8;color:#E5E5E5;white-space:pre-line;}
+.qa-actions{display:flex;justify-content:flex-end;gap:14px;margin-top:12px;}
+.star-btn{font-size:22px;background:none;border:none;cursor:pointer;color:#555;}
+.star-btn.active{color:var(--gold);}
+
+/* 測驗模式（單題卡片 / 滑動） */
+.quiz-wrap{position:relative;padding-top:6px;}
+.quiz-progress{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;color:var(--text-dim);font-size:13px;}
+.quiz-card{
+  background:var(--bg-card);border-radius:22px;padding:26px 22px;min-height:300px;
+  display:flex;flex-direction:column;border:1px solid #2f2f2f;
+  touch-action:pan-y;
+}
+.quiz-card .qtag{font-size:12px;color:var(--gold);font-weight:700;margin-bottom:10px;}
+.quiz-card .qtext{font-size:19px;font-weight:700;line-height:1.7;flex:1;}
+.quiz-card .atext{font-size:15px;line-height:1.85;color:#E8E8E8;white-space:pre-line;margin-top:16px;padding-top:16px;border-top:1px dashed #3a3a3a;display:none;}
+.quiz-card.show-answer .atext{display:block;}
+.reveal-btn{margin-top:18px;}
+.quiz-bottom-actions{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px;}
+.judge-btn{flex:1;padding:14px;border-radius:14px;border:none;font-weight:700;font-size:14px;cursor:pointer;}
+.judge-btn.know{background:rgba(79,154,106,.18);color:var(--ok);border:1px solid var(--ok);}
+.judge-btn.unknow{background:rgba(192,82,74,.18);color:var(--danger);border:1px solid var(--danger);}
+.swipe-hint{text-align:center;color:var(--text-dim);font-size:12px;margin-top:10px;}
+
+/* 空狀態 */
+.empty-state{text-align:center;padding:50px 20px;color:var(--text-dim);}
+.empty-state .emoji{font-size:40px;display:block;margin-bottom:10px;}
+
+/* 底部固定列 */
+.bottom-bar{
+  position:sticky;bottom:0;background:linear-gradient(transparent, var(--bg) 30%);
+  padding:14px 0 4px 0;margin-top:auto;
+}
+
+/* 設定面板 / Modal */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;
+  display:flex;align-items:flex-end;justify-content:center;
+}
+.modal-overlay.hidden{display:none;}
+.modal-sheet{
+  background:var(--bg-card);width:100%;max-width:520px;border-radius:22px 22px 0 0;
+  padding:20px 18px 26px 18px;max-height:88vh;overflow-y:auto;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.modal-title .close-x{font-size:20px;color:var(--text-dim);cursor:pointer;}
+.modal-section{margin-bottom:18px;}
+.modal-section label{display:block;font-size:13px;color:var(--text-dim);margin-bottom:6px;}
+textarea, input[type=text]{
+  width:100%;background:var(--bg-card2);border:1px solid #3a3a3a;border-radius:12px;
+  color:var(--text);padding:10px 12px;font-size:13px;font-family:monospace;outline:none;
+}
+textarea{min-height:130px;resize:vertical;}
+.file-input-wrap{
+  border:1.5px dashed #444;border-radius:14px;padding:18px;text-align:center;color:var(--text-dim);
+  font-size:13px;cursor:pointer;position:relative;
+}
+.file-input-wrap input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.toast{
+  position:fixed;left:50%;bottom:30px;transform:translateX(-50%);
+  background:#333;color:#fff;padding:10px 18px;border-radius:12px;font-size:13.5px;
+  z-index:200;opacity:0;transition:opacity .25s;pointer-events:none;
+}
+.toast.show{opacity:1;}
+
+/* 統計小卡 */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.stat-box{background:var(--bg-card);border:1px solid #2f2f2f;border-radius:16px;padding:16px;text-align:center;}
+.stat-box .num{font-size:24px;font-weight:800;color:var(--gold);}
+.stat-box .lbl{font-size:12px;color:var(--text-dim);margin-top:4px;}
+
+.section-title{font-size:14px;color:var(--text-dim);margin:18px 0 8px 4px;font-weight:600;}
+
+.back-link{display:flex;align-items:center;gap:6px;color:var(--text-dim);font-size:14px;margin-bottom:8px;cursor:pointer;}
+
+.goal-options{display:flex;gap:10px;}
+.goal-opt{flex:1;text-align:center;padding:12px;border-radius:14px;background:var(--bg-card2);border:1px solid #3a3a3a;cursor:pointer;font-weight:700;}
+.goal-opt.active{background:var(--gold);color:#1A1A1A;border-color:var(--gold);}
+
+::-webkit-scrollbar{width:0px;}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="topbar">
+    <h1 id="topbarTitle">📚 題庫學習平台</h1>
+    <div class="icon-btn" id="btnSettings" title="匯入/匯出">⚙️</div>
+  </div>
+  <main id="mainView"></main>
+</div>
+
+<div class="modal-overlay hidden" id="settingsModal">
+  <div class="modal-sheet">
+    <div class="modal-title"><span>匯入 / 匯出題庫</span><span class="close-x" id="closeSettings">✕</span></div>
+
+    <div class="modal-section">
+      <label>① 匯出目前所有題庫（下載 JSON 備份檔）</label>
+      <button class="btn" id="btnExportFile">⬇️ 下載 JSON 備份</button>
+    </div>
+
+    <div class="modal-section">
+      <label>② 從檔案匯入 JSON</label>
+      <div class="file-input-wrap">
+        📂 點此選擇 .json 檔案
+        <input type="file" id="fileImport" accept="application/json,.json">
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <label>③ 或貼上 JSON 文字內容</label>
+      <textarea id="importTextarea" placeholder='請貼上符合格式的題庫 JSON，例如：
+{
+  "教材名稱": {
+    "name": "教材名稱",
+    "questions": [
+      {"id":1,"category":"分類","chapter":"章節","question":"問題","answer":"答案","keywords":["關鍵字"],"favorite":false}
+    ]
+  }
+}'></textarea>
+      <div class="row" style="margin-top:10px;">
+        <button class="btn secondary" id="btnImportMerge">➕ 新增題庫</button>
+        <button class="btn danger" id="btnImportReplace">♻️ 取代同名題庫</button>
+      </div>
+    </div>
+
+    <div class="modal-section" style="margin-bottom:0;">
+      <label>⚠️ 危險區域</label>
+      <button class="btn secondary" id="btnResetAll">🗑️ 清空全部資料並還原預設題庫</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====================================================================================
+   題庫學習平台  —  單一 HTML 檔案 / 完全離線 / 無外部資源
+   程式架構：
+     一、資料模型 (Data Model)
+     二、題庫管理 (Bank Manager)
+     三、畫面控制 (View Controller)
+     四、LocalStorage 存取
+     五、事件控制 (Event Handlers)
+     六、共用工具 (Utils)
+     七、初始化 (Init)
+   ==================================================================================== */
+
+
+/* ====================================================================================
+   一、資料模型 (Data Model)
+   ----------------------------------------------------------------------------------
+   每一份教材皆為一個「題庫 Bank」，結構如下：
+   questionBanks = {
+     "<bankId>": {
+       id: "<bankId>",
+       name: "教材顯示名稱",
+       questions: [
+         {
+           id: 數字(可跳號，保留原始題號),
+           category: "分類",
+           chapter: "章節 / 頁碼",
+           question: "問題文字",
+           answer: "答案文字",
+           keywords: ["關鍵字1","關鍵字2"],
+           favorite: false   // 此欄位僅為預設值，實際收藏狀態存於 progress
+         },
+         ...
+       ]
+     }
+   }
+   未來新增教材，只需要依照上述格式提供新的 bank 物件，
+   透過「匯入題庫」功能貼上或上傳 JSON 即可，完全不需修改任何程式碼。
+   ==================================================================================== */
+
+const DEFAULT_BANK_ID = "tw_neigong";
+
+const defaultQuestionBanks = {
+  [DEFAULT_BANK_ID]: {
+    id: DEFAULT_BANK_ID,
+    name: "TW 內功心法 統整 (2025/07/08)",
+    questions: [
+      {id:73, category:"核心定義字箴言", chapter:"P1 字箴言", question:"10字箴言內容為何？", answer:"閱讀、聆聽、凝結、說明、創作", keywords:["10字箴言","閱讀","聆聽","凝結","說明","創作"], favorite:false},
+      {id:74, category:"核心定義字箴言", chapter:"P1 字箴言", question:"09字箴言內容為何？", answer:"定標準、做產品、心服務", keywords:["09字箴言","定標準","做產品","心服務"], favorite:false},
+      {id:75, category:"核心定義字箴言", chapter:"P1 字箴言", question:"08字箴言內容為何？", answer:"人無我有、人有我優", keywords:["08字箴言","人無我有","人有我優"], favorite:false},
+      {id:76, category:"核心定義字箴言", chapter:"P1 字箴言", question:"07字箴言（3A 定義）內容為何？", answer:"建築(Architecture)、藝術(Art)、優+生活(A+live)", keywords:["07字箴言","3A","建築","藝術","優生活"], favorite:false},
+      {id:77, category:"核心定義字箴言", chapter:"P1 字箴言", question:"06字箴言內容為何？", answer:"管理(紀律)、教育、支持", keywords:["06字箴言","管理","紀律","教育","支持"], favorite:false},
+      {id:78, category:"核心定義字箴言", chapter:"P1 字箴言", question:"05+1個圈（智慧同心圓）內容為何？", answer:"資料(Data)、資訊(Information)、知識(Knowledge)、事理(Logic)、學問(Know-how)、智慧(Wisdom)", keywords:["智慧同心圓","資料","資訊","知識","事理","學問","智慧"], favorite:false},
+      {id:79, category:"核心定義字箴言", chapter:"P1 字箴言", question:"「文以載道」的概念為何？", answer:"圖勝表，表勝文，核心是文（文字說明不可缺）", keywords:["文以載道","圖勝表","表勝文"], favorite:false},
+      {id:80, category:"核心定義字箴言", chapter:"P1 雙橡園文宣", question:"雙橡園文宣的兩大重點為何？", answer:"①用未來的未來思考，在現在的現在進步。\n②豪宅1.0→社區泳池+24HR保全管理；豪宅2.0→1.0+主廚進駐+豪華大廳+櫃檯秘書；豪宅3.0→1.0+2.0+自建物業+禮賓接駁+頂級餐飲團隊進駐", keywords:["雙橡園文宣","豪宅1.0","豪宅2.0","豪宅3.0"], favorite:false},
+
+      {id:1, category:"管理與系統心法", chapter:"P1", question:"TW循環的六大步驟依序為何？", answer:"分析環境 → 決定策略 → 解析結構 → 設計流程 → 行為展現 → 結果(產出)", keywords:["TW循環","分析環境","決定策略","解析結構","設計流程","行為展現"], favorite:false},
+      {id:2, category:"管理與系統心法", chapter:"P1", question:"TW五大硬體包含哪五項？又可再分為哪三大類？", answer:"五大硬體：①結構②公設③機電④外觀⑤標配。\n再分三大類：1.地上+地下層 2.住戶專有及公有空間 3.使照前+後，共15大類", keywords:["TW五大硬體","結構","公設","機電","外觀","標配"], favorite:false},
+      {id:3, category:"管理與系統心法", chapter:"P1", question:"TW三比是哪三項？", answer:"①比前期 ②比同業 ③比目標", keywords:["TW三比","比前期","比同業","比目標"], favorite:false},
+      {id:4, category:"管理與系統心法", chapter:"P1", question:"價值工程公式為何？", answer:"假設(要與不要) × 項目 × 數量 × 單價 × 付款方式（依高性價比模式執行）", keywords:["價值工程公式","高性價比"], favorite:false},
+      {id:5, category:"理念語錄與工作哲學", chapter:"P1", question:"TW的理念為何？", answer:"專注成就品牌、建築承諾價值", keywords:["TW理念","成就品牌","建築承諾價值"], favorite:false},
+      {id:6, category:"管理與系統心法", chapter:"P1", question:"TW競爭優勢的公式為何？", answer:"競爭策略 × 強化組織能力（企業成功方程式）", keywords:["TW競爭優勢","企業成功方程式"], favorite:false},
+      {id:7, category:"管理與系統心法", chapter:"P1", question:"TW8次進化（決勝邊緣理論）的計算結果為何？", answer:"1.1的8次方 = 2.14；0.9的8次方 = 0.43，兩者相差5倍", keywords:["決勝邊緣理論","8次進化","1.1的8次方","0.9的8次方"], favorite:false},
+      {id:8, category:"理念語錄與工作哲學", chapter:"P1", question:"個人競爭優勢的演進為何？", answer:"20世紀：態度 × 努力 × 能力 →→→ 21世紀：想法 × 熱情 × 能力（個人成功方程式）。【苟日新，日日新，又日新】→→→持續進步", keywords:["個人競爭優勢","個人成功方程式","苟日新日日新又日新"], favorite:false},
+      {id:9, category:"管理與系統心法", chapter:"P1", question:"TW強化組織能力的方法與內容為何？", answer:"原則：「持續閱讀；學會聆聽；累積觀點；說明傳達；寫出有力的詞句」。\n【閱讀】閱讀重要訊息→\n【聆聽】積極傾聽七個好習慣(1.眼神接觸,肢體語言 2.尊重的問題 3.不打岔 4.手要記筆 5.確認 6.觀點做出回應 7.要將心比心)→\n【凝結】觀察所有,有觀點 →【說明】傳達,精煉有力的詞句 →【創作/完整可執行的方案】留做紀錄\nPS：創作/完整可執行的方案-反覆驗證修正並去執行，確定是否可行後再精進。", keywords:["強化組織能力","閱讀","聆聽","凝結","說明","創作","積極傾聽七個好習慣"], favorite:false},
+      {id:10, category:"核心定義字箴言", chapter:"P1", question:"真善美的定義為何？", answer:"①真：建築的初衷 * 認真專注\n②善：建築的工藝 * 精雕細琢\n③美：住戶的笑容 * 貼心相待\nPS：①認真專注-深根七期的建築初衷(莫忘初衷) ②精雕細琢-打造營建工藝的恆久價值 ③貼心相待-用微笑實現更多生命的美好", keywords:["真善美","認真專注","精雕細琢","貼心相待"], favorite:false},
+      {id:11, category:"理念語錄與工作哲學", chapter:"P1", question:"功夫進化的三步驟為何？", answer:"選擇對的事情 → 把對的事情做完整 → 持續精進並養成習慣", keywords:["功夫進化","選擇對的事情","持續精進"], favorite:false},
+      {id:12, category:"管理與系統心法", chapter:"P1", question:"企業策略選擇的三種方向為何？", answer:"①目標集中(顧客導向) ②成本領先(人有我優) ③差異化(人無我有)", keywords:["企業策略選擇","目標集中","成本領先","差異化"], favorite:false},
+      {id:13, category:"管理與系統心法", chapter:"P1", question:"Slogan的三項內容為何？", answer:"①識價值才出手，是唯一才擁有 ②50靠自己+30靠環境+20靠主管 ③三項成長：能力、職位、薪資", keywords:["Slogan","識價值才出手","三項成長"], favorite:false},
+      {id:14, category:"管理與系統心法", chapter:"P1", question:"管理學第一堂課的四個重點為何？", answer:"①所有事物都存在假設 ②事物皆有三個版本(你的、我的、真相) ③三個版本難以找到完整一樣、一致的可能 ④所以需要管理學", keywords:["管理學第一堂課","三個版本"], favorite:false},
+      {id:15, category:"管理與系統心法", chapter:"P1", question:"5S(6S)分別代表什麼？", answer:"整理、整頓、清潔、清掃、素養 / 自律 / 紀律 +（安全）", keywords:["5S","6S","整理","整頓","清潔","清掃","素養"], favorite:false},
+      {id:16, category:"理念語錄與工作哲學", chapter:"P1", question:"「能力」是如何產生的？", answer:"能力是從面對問題與解決問題中，淬鍊出現。", keywords:["能力","面對問題","解決問題"], favorite:false},
+      {id:17, category:"理念語錄與工作哲學", chapter:"P1", question:"問題中的問題需要什麼？", answer:"需要有疑問與答案。", keywords:["問題中的問題","疑問與答案"], favorite:false},
+      {id:18, category:"理念語錄與工作哲學", chapter:"P1", question:"單價與哪些因素有關？", answer:"單價與尺寸、高度、密度、厚度有關。", keywords:["單價","尺寸","高度","密度","厚度"], favorite:false},
+      {id:19, category:"理念語錄與工作哲學", chapter:"P1", question:"固本培元的意思為何？", answer:"穩固根本。", keywords:["固本培元","穩固根本"], favorite:false},
+      {id:20, category:"理念語錄與工作哲學", chapter:"P1", question:"柯比意對建築的看法為何？", answer:"建築是在解決生活的問題。", keywords:["柯比意","解決生活的問題"], favorite:false},
+      {id:21, category:"理念語錄與工作哲學", chapter:"P1", question:"《禮記·中庸》提到的五個學習層次為何？", answer:"博學、審問、慎思、明辨、篤行", keywords:["禮記","中庸","博學","審問","慎思","明辨","篤行"], favorite:false},
+      {id:22, category:"理念語錄與工作哲學", chapter:"P1", question:"JERRY語錄之一：百密一疏的觀念為何？", answer:"百密一疏，千錘百鍊，萬無一失。", keywords:["JERRY","百密一疏","千錘百鍊","萬無一失"], favorite:false},
+      {id:23, category:"理念語錄與工作哲學", chapter:"P1", question:"JERRY語錄之二：職魂專注的觀念為何？", answer:"職魂專注、匠心淬鍊；可靠性、回應性、確實性。", keywords:["JERRY","職魂專注","匠心淬鍊","可靠性","回應性","確實性"], favorite:false},
+      {id:24, category:"理念語錄與工作哲學", chapter:"P1", question:"荷花定律的道理為何？", answer:"「拚到最後，拚的不是運氣和聰明，而是毅力」", keywords:["荷花定律","毅力"], favorite:false},
+      {id:25, category:"管理與系統心法", chapter:"P1", question:"業主價值包含哪些項目？", answer:"設計原意、營造建設、深耕物業、會館經營、活動策畫", keywords:["業主價值","設計原意","營造建設","深耕物業","會館經營","活動策畫"], favorite:false},
+      {id:26, category:"管理與系統心法", chapter:"P1", question:"TW三大預算書為何？", answer:"①投報預算(1頁) ②評估預算(5頁) ③執行預算(25頁)", keywords:["TW三大預算書","投報預算","評估預算","執行預算"], favorite:false},
+      {id:27, category:"管理與系統心法", chapter:"P1", question:"TW三大軟體為何？", answer:"①成交後的量身訂作 ②交屋後的長期經營 ③個人專屬的優生活服務", keywords:["TW三大軟體","量身訂作","長期經營","優生活服務"], favorite:false},
+
+      {id:28, category:"管理與系統心法", chapter:"P2", question:"TW五大軟體（貼心服務的顧問）內容為何？", answer:"①施工前的品牌營造 ②成交後的精準客變(對接機電) ③交屋後的長期經營(對接公設、機電) ④會員專屬的活動策劃(對接公設、機電，專屬優生活服務) ⑤會員資源的整合共享", keywords:["TW五大軟體","貼心服務的顧問","精準客變"], favorite:false},
+      {id:29, category:"管理與系統心法", chapter:"P2", question:"TW五大硬體（使用維護的專家）內容為何？", answer:"①施工規劃設計的參與與建議 ②社區財務預估及人力配置規劃 ③使用者端的資訊汲取與反饋 ④專業的居住環境維護 ⑤高品質的生活服務、會員專屬活動策劃", keywords:["TW五大硬體","使用維護的專家"], favorite:false},
+      {id:30, category:"管理與系統心法", chapter:"P2", question:"SMART理論的五個元素依序為何？", answer:"傳播(Sender) → 訊息(Message) → 態度(Attitude) × 高度(Altitude) → 接收(Receiver) → 目標(Target)", keywords:["SMART理論","Sender","Message","Attitude","Altitude","Receiver","Target"], favorite:false},
+      {id:31, category:"理念語錄與工作哲學", chapter:"P2", question:"同仁對自己的職責應負多少責任？包含哪四項？", answer:"同仁對自己的職責負100%責任，每一項工作之「安全、品質、進度、成本」皆負100%責任。", keywords:["100%責任","安全","品質","進度","成本"], favorite:false},
+      {id:32, category:"管理與系統心法", chapter:"P2", question:"品質觀念的演進五級為何？", answer:"①第一級品質是檢查出來的→工人 ②第二級品質是製作出來的→師父 ③第三級品質是設計出來的→設計師 ④第四級品質是管理出來的→主管 ⑤第五級品質是習慣出來的→全公司的責任", keywords:["品質觀念演進","五級品質"], favorite:false},
+      {id:33, category:"管理與系統心法", chapter:"P2", question:"6P分別代表什麼？", answer:"①產品(Product) ②價格(Price) ③通路(Place) ④促銷(Promotion) ⑤包裝(Package) ⑥人事(People)", keywords:["6P","Product","Price","Place","Promotion","Package","People"], favorite:false},
+      {id:34, category:"管理與系統心法", chapter:"P2", question:"6C分別代表什麼？", answer:"①顧客問題解決(Customer Solution) ②顧客成本(Cost of Customer) ③便利性(Convenience) ④溝通(Communication) ⑤企業品牌定義(CBD) ⑥名人代言(Celebrity Endorsement)", keywords:["6C","Customer Solution","Cost of Customer","Convenience","Communication","CBD","Celebrity Endorsement"], favorite:false},
+      {id:35, category:"理念語錄與工作哲學", chapter:"P2", question:"當一件事發生時，應如何反思？", answer:"反思自己能做什麼，了解自己的權責，找出價值核心，達到存在的價值。", keywords:["反思","權責","價值核心","存在的價值"], favorite:false},
+      {id:36, category:"理念語錄與工作哲學", chapter:"P2", question:"鈴木一郎對學習的看法為何？", answer:"如無學習，一天自己知道，兩天對手知道，三天全部人知道；自律，自己要不斷學習與練習。", keywords:["鈴木一郎","自律","不斷學習"], favorite:false},
+      {id:37, category:"管理與系統心法", chapter:"P2", question:"「教」的方法與「學」的效果對照為何？", answer:"空口白話/口語傳達 → 記得10%\n白紙黑字/圖文傳達 → 記得30%\n影音動畫/聲光傳達 → 記得60%\n實際展現/親身演示 → 記得90%", keywords:["教與學","記憶留存率","親身演示"], favorite:false},
+      {id:38, category:"管理與系統心法", chapter:"P2", question:"3D哲學的三個要素為何？", answer:"定義(Define)、差異化(Difference)、困難(Difficult)", keywords:["3D哲學","Define","Difference","Difficult"], favorite:false},
+      {id:40, category:"理念語錄與工作哲學", chapter:"P2", question:"唐鳳對缺口的看法為何？", answer:"鐘能敲響就敲響，十全槽相莫指望。萬事萬物都有缺口，缺口就是光的入口。", keywords:["唐鳳","缺口","光的入口"], favorite:false},
+      {id:41, category:"理念語錄與工作哲學", chapter:"P2", question:"優秀工程師的定義為何？", answer:"80%工程師的性格 + 20%設計師的性格", keywords:["優秀工程師","工程師性格","設計師性格"], favorite:false},
+      {id:42, category:"理念語錄與工作哲學", chapter:"P2", question:"「業主」的定義在交屋前後有何不同？", answer:"交屋前：陳先生、執行長、設計部、買地規劃都是業主；交屋後：已過戶後的客戶才是業主。", keywords:["業主定義","交屋前","交屋後"], favorite:false},
+      {id:43, category:"理念語錄與工作哲學", chapter:"P2", question:"「艱困的路」傳達的觀念為何？", answer:"艱困的路，越走越輕鬆，越有成就感（選擇困難的事，做有價值的事）。", keywords:["艱困的路","選擇困難的事","有價值的事"], favorite:false},
+      {id:44, category:"理念語錄與工作哲學", chapter:"P2", question:"兩種人指的是哪兩種？", answer:"①職人 ②帶領一群職人的人", keywords:["兩種人","職人"], favorite:false},
+      {id:45, category:"理念語錄與工作哲學", chapter:"P2", question:"售價的計算方式為何？", answer:"售價 = 買地成本 + 營建成本 + 利潤", keywords:["售價","買地成本","營建成本","利潤"], favorite:false},
+      {id:46, category:"理念語錄與工作哲學", chapter:"P2", question:"「飲水思源」的延伸觀念為何？", answer:"把大海放在心中，則海闊天空。", keywords:["飲水思源","海闊天空"], favorite:false},
+      {id:47, category:"理念語錄與工作哲學", chapter:"P2", question:"「認識」與「了解」的關係為何？", answer:"認識是了解的開始，了解才能開始行動。", keywords:["認識","了解","開始行動"], favorite:false},
+      {id:48, category:"管理與系統心法", chapter:"P2", question:"4D是什麼的延伸？", answer:"4D = 3D + 時間", keywords:["4D","3D","時間"], favorite:false},
+      {id:49, category:"公司資料", chapter:"P2", question:"精準客變整合專案於何時成立？", answer:"2023年成立精準客變整合專案", keywords:["2023年","精準客變整合專案"], favorite:false},
+      {id:50, category:"理念語錄與工作哲學", chapter:"P2", question:"對於「未來」的態度應為何？", answer:"預設未來，不如創造他們。", keywords:["預設未來","創造未來"], favorite:false},
+      {id:51, category:"理念語錄與工作哲學", chapter:"P2", question:"「無所求」與「獲得」的關係為何？", answer:"無所求時，才會獲得更多。", keywords:["無所求","獲得更多"], favorite:false},
+      {id:52, category:"理念語錄與工作哲學", chapter:"P2", question:"「勇氣」的真正意義為何？", answer:"勇氣不在於害怕，而是克服恐懼。", keywords:["勇氣","克服恐懼"], favorite:false},
+      {id:53, category:"管理與系統心法", chapter:"P2", question:"QBQ代表什麼？", answer:"QBQ：問題背後的問題", keywords:["QBQ","問題背後的問題"], favorite:false},
+      {id:54, category:"理念語錄與工作哲學", chapter:"P2", question:"我們對於能力與期待的態度為何？", answer:"我們有能力，有所作為，背負期待，選擇去做。", keywords:["有能力","有所作為","背負期待","選擇去做"], favorite:false},
+      {id:55, category:"管理與系統心法", chapter:"P2", question:"八二法則的內容為何？", answer:"其中20%的重要事件中發揮出八成的效果。", keywords:["八二法則","20%","八成效果"], favorite:false},
+      {id:56, category:"管理與系統心法", chapter:"P2", question:"39+1代表什麼？", answer:"每周花1HR來沉澱思考。", keywords:["39+1","每周1HR","沉澱思考"], favorite:false},
+      {id:57, category:"理念語錄與工作哲學", chapter:"P2", question:"關於累積的觀念為何？", answer:"不斷累積，有天會變成奇蹟。", keywords:["不斷累積","奇蹟"], favorite:false},
+      {id:58, category:"管理與系統心法", chapter:"P2", question:"成功的系統思維「道法術器勢方」分別對應什麼？", answer:"道：問題本質與解決之道；法：方法論；術：創新；器：學習積累/具體行動；勢：工具或資源/屬性差異；方：目標方向。", keywords:["道法術器勢方","系統思維"], favorite:false},
+      {id:59, category:"管理與系統心法", chapter:"P2", question:"「可複製的領導力」五個節點為何？", answer:"說明任務、複叙任務、執行原因、狀況提問與回報、你是主管會怎麼做。", keywords:["可複製的領導力","五個節點","複叙任務"], favorite:false},
+      {id:60, category:"理念語錄與工作哲學", chapter:"P2", question:"最先被分類做等級服務區分的產業為何？", answer:"最先被分類的是「飯店」，採一~五星級、超五星級，做等級服務的區分。", keywords:["飯店","星級","等級服務"], favorite:false},
+      {id:61, category:"理念語錄與工作哲學", chapter:"P2", question:"「一碗麵有蒼蠅」的應對方式說明什麼道理？", answer:"告訴店家並重做，但那碗麵要放著，等店家重做一碗全新的再讓他收回（面對問題的做法要考量人性）。", keywords:["一碗麵有蒼蠅","考量人性"], favorite:false},
+      {id:62, category:"管理與系統心法", chapter:"P2", question:"溝通黃金法則 55、38、7 分別代表什麼？", answer:"55%肢體語言(Look & Link)、38%聲音語調(Sound of Voice)、7%文字內容(Words)", keywords:["溝通黃金法則","55","38","7","肢體語言","聲音語調","文字內容"], favorite:false},
+
+      {id:63, category:"管理與系統心法", chapter:"P3", question:"分類時須考量什麼原則？", answer:"分類須考量前因後果並且有邏輯性的去歸類區分。", keywords:["分類原則","前因後果","邏輯性"], favorite:false},
+      {id:64, category:"管理與系統心法", chapter:"P3", question:"房地產價值分析的公式為何？", answer:"房地產價值 = 品牌 × 地段 × 規劃 × 施工 × 經營", keywords:["房地產價值分析","品牌","地段","規劃","施工","經營"], favorite:false},
+      {id:65, category:"理念語錄與工作哲學", chapter:"P3", question:"深耕核心經營理念為何？", answer:"共同承擔管理責任，提升建築長期價值。", keywords:["深耕核心經營理念","共同承擔管理責任"], favorite:false},
+      {id:66, category:"公司資料", chapter:"P3", question:"台中高價住宅品牌建商「一聯三寶由雙陸」指的是哪些建商？", answer:"聯聚、寶輝、龍寶、寶璽、由鉅、雙橡園、大陸", keywords:["一聯三寶由雙陸","台中高價住宅品牌建商","聯聚","寶輝","龍寶","寶璽","由鉅","雙橡園","大陸"], favorite:false},
+      {id:67, category:"管理與系統心法", chapter:"P3", question:"營建價值體系的「3態」是什麼？請說明各階段內容。", answer:"營造態 → 完成態 → 享受態\n①營造態：9層級圖面從整體進度考量，決定機能與設計、繪製圖面、決定施工圖面、圖面審核，再經法規、結構、成本與安全等結合檢核，最後到達專業協力商可檢討、回饋及作。(會長達兩年的時間)\n1~3層級-前階段業主需求、決定機能的設計圖面；4~6層級-營造工務與廠商討論清計圖面並加以整合後的施工圖面；7~9層級-與師傅工班專業討論後可實際施作結合的正確執行圖面。\n②完成態：營造態完成後的3+2之品保確認(會長達一年的時間)。\n3級：(1級-廠商、工班)、(2級-營造工務)、(3級-設計部、深耕、會服人員)的3級品保。\n2級：(1級-總經理級、業主)、(2級-會員交屋)。\n③享受態：使用機能完善達最終目標，以3A建築、藝術、優生活為主旨，可於享受或使用上的回饋，再回營造態進行前端的檢討(以同理心建構)；營建三態是循環，讓營建工藝再精進。", keywords:["營建價值體系","3態","營造態","完成態","享受態"], favorite:false},
+      {id:68, category:"管理與系統心法", chapter:"P3", question:"老闆執行孫子兵法的「道、天、地、將、法」是什麼？主管需了解並執行的「智、信、仁、勇、嚴」又是什麼？", answer:"老闆執行孫子兵法：道、天、地、將、法。道：指君主的領導力；天：指天時；地：指地利；將：指彼此統帥和將領的能耐；法：是軍法。\n主管需了解並執行「智、信、仁、勇、嚴」：智：「智慧」能想出「克敵制勝」之策；信：為「信任與誠信」；仁：「仁慈、仁愛」，核心是「待人友善」；勇：指「做事果斷」，做「應做」和「該做」的事；嚴：講「紀律」、行「制度」，先「嚴己」後「嚴人」。", keywords:["孫子兵法","道天地將法","智信仁勇嚴"], favorite:false},
+
+      {id:70, category:"公司資料", chapter:"P3 社區地址", question:"請列出各案名對應的社區地址。", answer:"V1特區(733)：408台中市南屯區大正街88號\n雙橡園1617：408台中市南屯區惠文路528號\n雙橡園1812：408台中市南屯區龍富路四段88號\nS1特區(1348)：407台中市南屯區市政南一路323號\n雙橡園2279：407台中市西屯區馬龍潭路1號、3號\n雙橡園2925：406台中市北屯區仁平街99號", keywords:["社區地址","V1特區","雙橡園1617","雙橡園1812","S1特區","雙橡園2279","雙橡園2925"], favorite:false},
+      {id:71, category:"公司資料", chapter:"P3 工區位置", question:"目前各工區的相對位置為何？", answer:"雙橡園4117：台中市北屯區中平路與經貿五路口(水滴愛買、迪卡儂旁)\n雙橡園1920：台中市南屯區龍富路五段、龍瑞街\n雙橡園2045：台中市北屯區軍福十九路、南興園路、長富街(南興公園對面)\n雙橡園1518：南屯區公益路二段、龍富路五段、龍富十九街(黎新公園旁)", keywords:["工區相對位置","雙橡園4117","雙橡園1920","雙橡園2045","雙橡園1518"], favorite:false},
+      {id:69, category:"公司資料", chapter:"P3 雙橡園時間軸", question:"雙橡園品牌發展時間軸的重要里程碑為何？", answer:"2004年：雙橡園開發自2004年成立，深耕中台灣。\n2004-2018：完成作品 英聖·A8特區、Q1特區、橡One特區、F1特區、R1特區。\n2018年：雙橡園開發自2018年，成立深耕物業，保served豪宅建築之社區，導入台北高端餐飲團隊。\n2020年：雙橡園V1特區，大正街88號，Voque&Vision，捷運站步行3分鐘。\n2021年：導入頂級酒店頂級餐飲團隊；雙橡園1617，惠文街528號、戶門前2萬6千8百坪，文心森林公園第一排。\n2022-2024：雙橡園1812，龍富路四段88號，私有花園1400坪，超大基地地下三層；雙橡園S1特區，七期市政心，14000坪萊頂級綠水準，千坪前後雙花園。\n2023年：行政主廚經驗總監，肩任公司營運核心主管12年；連續三年全市高價住宅年度成交第一。\n2025年：興建中 雙橡園2279(馬龍潭路1號，超大基地僅一棟，謙退50米)、雙橡園4117、雙橡園1920(1900坪有大花園)、雙橡園2045。", keywords:["雙橡園時間軸","品牌發展","V1特區","雙橡園1617","雙橡園1812","雙橡園S1特區"], favorite:false}
+    ]
+  }
+};
+
+
+/* ====================================================================================
+   二、題庫管理 (Bank Manager)
+   ----------------------------------------------------------------------------------
+   負責：載入題庫(預設+使用者匯入)、合併、取代、查詢題目、依條件篩選。
+   ==================================================================================== */
+const BankManager = {
+
+  // 目前記憶體中的題庫集合 { bankId: bankObj }
+  banks: {},
+
+  // 初始化：優先讀取 LocalStorage 中使用者保存過的題庫，沒有的話才用內建預設題庫
+  init(){
+    const saved = Storage.loadBanks();
+    if(saved && Object.keys(saved).length > 0){
+      this.banks = saved;
+    } else {
+      this.banks = JSON.parse(JSON.stringify(defaultQuestionBanks));
+      Storage.saveBanks(this.banks);
+    }
+  },
+
+  getAllBanks(){
+    return Object.values(this.banks);
+  },
+
+  getBank(bankId){
+    return this.banks[bankId];
+  },
+
+  // 驗證匯入資料是否符合題庫格式規範
+  validateImportData(data){
+    if(typeof data !== "object" || data === null) return "資料必須是一個 JSON 物件";
+    const keys = Object.keys(data);
+    if(keys.length === 0) return "資料中沒有任何題庫";
+    for(const k of keys){
+      const bank = data[k];
+      if(!bank || typeof bank !== "object") return `題庫 "${k}" 格式錯誤`;
+      if(!Array.isArray(bank.questions)) return `題庫 "${k}" 缺少 questions 陣列`;
+      for(const q of bank.questions){
+        if(q.id === undefined || q.question === undefined || q.answer === undefined){
+          return `題庫 "${k}" 內有題目缺少必要欄位 (id / question / answer)`;
+        }
+      }
+    }
+    return null; // null 代表驗證通過
+  },
+
+  // 新增題庫（不影響既有同名題庫以外的資料；若 id 重複則直接覆蓋該筆）
+  mergeImport(data){
+    Object.keys(data).forEach(key=>{
+      const bank = data[key];
+      const bankId = bank.id || key;
+      bank.id = bankId;
+      bank.name = bank.name || key;
+      bank.questions = bank.questions.map(q=>({
+        id:q.id, category:q.category||"未分類", chapter:q.chapter||"",
+        question:q.question, answer:q.answer,
+        keywords:Array.isArray(q.keywords)?q.keywords:[],
+        favorite: !!q.favorite
+      }));
+      this.banks[bankId] = bank;
+    });
+    Storage.saveBanks(this.banks);
+  },
+
+  // 取代：清空全部現有題庫，改為匯入的內容
+  replaceImport(data){
+    const newBanks = {};
+    Object.keys(data).forEach(key=>{
+      const bank = data[key];
+      const bankId = bank.id || key;
+      bank.id = bankId;
+      bank.name = bank.name || key;
+      bank.questions = bank.questions.map(q=>({
+        id:q.id, category:q.category||"未分類", chapter:q.chapter||"",
+        question:q.question, answer:q.answer,
+        keywords:Array.isArray(q.keywords)?q.keywords:[],
+        favorite: !!q.favorite
+      }));
+      newBanks[bankId] = bank;
+    });
+    this.banks = newBanks;
+    Storage.saveBanks(this.banks);
+  },
+
+  // 匯出目前全部題庫為格式化 JSON 字串
+  exportAllAsJSON(){
+    return JSON.stringify(this.banks, null, 2);
+  },
+
+  // 還原為內建預設題庫
+  resetToDefault(){
+    this.banks = JSON.parse(JSON.stringify(defaultQuestionBanks));
+    Storage.saveBanks(this.banks);
+  },
+
+  // 取得篩選後的題目清單
+  filterQuestions(bankId, {category="全部", keyword="", onlyFavorite=false, onlyWrong=false} = {}){
+    const bank = this.getBank(bankId);
+    if(!bank) return [];
+    const progress = Storage.getBankProgress(bankId);
+    let list = bank.questions.slice();
+
+    if(category && category !== "全部"){
+      list = list.filter(q=>q.category===category);
+    }
+    if(keyword && keyword.trim()!==""){
+      const kw = keyword.trim().toLowerCase();
+      list = list.filter(q=>
+        String(q.id).includes(kw) ||
+        q.question.toLowerCase().includes(kw) ||
+        q.answer.toLowerCase().includes(kw) ||
+        (q.keywords||[]).some(k=>k.toLowerCase().includes(kw))
+      );
+    }
+    if(onlyFavorite){
+      list = list.filter(q=>progress.favorites.includes(q.id));
+    }
+    if(onlyWrong){
+      list = list.filter(q=>progress.wrong.includes(q.id));
+    }
+    return list;
+  },
+
+  getCategories(bankId){
+    const bank = this.getBank(bankId);
+    if(!bank) return [];
+    const set = new Set(bank.questions.map(q=>q.category||"未分類"));
+    return ["全部", ...Array.from(set)];
+  }
+};
+
+
+/* ====================================================================================
+   四、LocalStorage 存取
+   ----------------------------------------------------------------------------------
+   保存：題庫本體(banks)、各題庫的學習進度(favorites/wrong/done/today/lastRead)、
+        最近使用的題庫 id。
+   ==================================================================================== */
+const STORAGE_KEYS = {
+  BANKS: "qbank_platform_banks_v1",
+  PROGRESS: "qbank_platform_progress_v1",
+  RECENT: "qbank_platform_recent_v1"
+};
+
+const Storage = {
+  saveBanks(banks){
+    try{ localStorage.setItem(STORAGE_KEYS.BANKS, JSON.stringify(banks)); }catch(e){ console.error("儲存題庫失敗", e); }
+  },
+  loadBanks(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEYS.BANKS);
+      return raw ? JSON.parse(raw) : null;
+    }catch(e){ return null; }
+  },
+
+  loadAllProgress(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEYS.PROGRESS);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){ return {}; }
+  },
+  saveAllProgress(p){
+    try{ localStorage.setItem(STORAGE_KEYS.PROGRESS, JSON.stringify(p)); }catch(e){}
+  },
+
+  // 取得單一題庫的進度物件（不存在則建立預設值）
+  getBankProgress(bankId){
+    const all = this.loadAllProgress();
+    if(!all[bankId]){
+      all[bankId] = {
+        favorites: [],      // 收藏的題目 id
+        wrong: [],          // 錯題的題目 id (不熟)
+        done: [],           // 已經作答過(已會)的題目 id
+        todayDate: "",      // 今日練習對應的日期字串
+        todayGoal: 10,      // 每日目標題數
+        todayDoneIds: [],   // 今日已練習過的題目 id
+        lastRead: null,     // 最後閱讀位置 {mode, bankId, index}
+        lastUsedAt: 0        // 最近使用時間戳
+      };
+      this.saveAllProgress(all);
+    }
+    return all[bankId];
+  },
+
+  updateBankProgress(bankId, updater){
+    const all = this.loadAllProgress();
+    if(!all[bankId]) all[bankId] = this.getBankProgress(bankId);
+    updater(all[bankId]);
+    all[bankId].lastUsedAt = Date.now();
+    this.saveAllProgress(all);
+  },
+
+  toggleFavorite(bankId, qid){
+    let nowFav = false;
+    this.updateBankProgress(bankId, p=>{
+      const idx = p.favorites.indexOf(qid);
+      if(idx>=0){ p.favorites.splice(idx,1); nowFav=false; }
+      else{ p.favorites.push(qid); nowFav=true; }
+    });
+    return nowFav;
+  },
+
+  markJudge(bankId, qid, know){
+    this.updateBankProgress(bankId, p=>{
+      // 已會 → 從錯題移除，加入 done
+      // 不熟 → 加入 wrong，從 done 移除
+      if(know){
+        if(!p.done.includes(qid)) p.done.push(qid);
+        const wi = p.wrong.indexOf(qid);
+        if(wi>=0) p.wrong.splice(wi,1);
+      } else {
+        if(!p.wrong.includes(qid)) p.wrong.push(qid);
+        const di = p.done.indexOf(qid);
+        if(di>=0) p.done.splice(di,1);
+      }
+      // 處理今日練習計數
+      const today = Utils.todayStr();
+      if(p.todayDate !== today){ p.todayDate = today; p.todayDoneIds = []; }
+      if(!p.todayDoneIds.includes(qid)) p.todayDoneIds.push(qid);
+    });
+  },
+
+  setTodayGoal(bankId, goal){
+    this.updateBankProgress(bankId, p=>{ p.todayGoal = goal; });
+  },
+
+  setLastRead(bankId, info){
+    this.updateBankProgress(bankId, p=>{ p.lastRead = info; });
+  },
+
+  clearAll(){
+    localStorage.removeItem(STORAGE_KEYS.BANKS);
+    localStorage.removeItem(STORAGE_KEYS.PROGRESS);
+    localStorage.removeItem(STORAGE_KEYS.RECENT);
+  }
+};
+
+
+/* ====================================================================================
+   六、共用工具 (Utils)
+   ==================================================================================== */
+const Utils = {
+  todayStr(){
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+  },
+  shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  },
+  escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  },
+  toast(msg){
+    const el = document.getElementById("toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(this._toastTimer);
+    this._toastTimer = setTimeout(()=>el.classList.remove("show"), 2200);
+  },
+  formatTimeAgo(ts){
+    if(!ts) return "尚未使用";
+    const diff = Date.now()-ts;
+    const min = Math.floor(diff/60000);
+    if(min<1) return "剛剛";
+    if(min<60) return min+"分鐘前";
+    const hr = Math.floor(min/60);
+    if(hr<24) return hr+"小時前";
+    const day = Math.floor(hr/24);
+    return day+"天前";
+  }
+};
+
+
+/* ====================================================================================
+   三、畫面控制 (View Controller)
+   ----------------------------------------------------------------------------------
+   App 狀態機：home → bankHome(模式選擇) → browse / quiz
+   ==================================================================================== */
+const View = {
+  state: {
+    screen: "home",      // home | bankHome | browse | quiz
+    bankId: null,
+    quizQueue: [],        // 測驗模式目前的洗牌後題目清單
+    quizIndex: 0,
+    quizSourceLabel: "",  // 顯示用：隨機抽題 / 錯題複習 / 收藏複習 / 今日練習
+    browseCategory: "全部",
+    browseKeyword: "",
+  },
+
+  $main: null,
+
+  init(){
+    this.$main = document.getElementById("mainView");
+    this.renderHome();
+  },
+
+  setTopbarTitle(text){
+    document.getElementById("topbarTitle").textContent = text;
+  },
+
+  // ------------------------------- 首頁 -------------------------------
+  renderHome(){
+    this.state.screen = "home";
+    this.setTopbarTitle("📚 題庫學習平台");
+    const banks = BankManager.getAllBanks();
+
+    if(banks.length===0){
+      this.$main.innerHTML = `
+        <div class="empty-state">
+          <span class="emoji">📭</span>
+          目前沒有任何題庫<br>請點右上角 ⚙️ 匯入題庫
+        </div>`;
+      return;
+    }
+
+    let html = `<div class="section-title">我的題庫（共 ${banks.length} 份）</div>`;
+    banks.forEach(bank=>{
+      const progress = Storage.getBankProgress(bank.id);
+      const total = bank.questions.length;
+      const todayCount = (progress.todayDate===Utils.todayStr()) ? progress.todayDoneIds.length : 0;
+      const todayGoal = progress.todayGoal || 10;
+      const donePercent = total>0 ? Math.round((progress.done.length/total)*100) : 0;
+
+      html += `
+      <div class="card bank-card" data-action="openBank" data-bank="${bank.id}">
+        <div class="bank-name">${Utils.escapeHtml(bank.name)}</div>
+        <div class="bank-stats">
+          <div class="stat-pill">📄 <b>${total}</b> 題</div>
+          <div class="stat-pill">🕐 ${Utils.formatTimeAgo(progress.lastUsedAt)}</div>
+          <div class="stat-pill">⭐ <b>${progress.favorites.length}</b> 收藏</div>
+          <div class="stat-pill">❌ <b>${progress.wrong.length}</b> 錯題</div>
+          <div class="stat-pill">✅ 今日 <b>${todayCount}/${todayGoal}</b></div>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:${donePercent}%"></div></div>
+      </div>`;
+    });
+
+    this.$main.innerHTML = html;
+  },
+
+  // ------------------------------- 題庫主頁(模式選擇) -------------------------------
+  renderBankHome(bankId){
+    this.state.screen = "bankHome";
+    this.state.bankId = bankId;
+    const bank = BankManager.getBank(bankId);
+    if(!bank){ this.renderHome(); return; }
+    this.setTopbarTitle(bank.name);
+    const progress = Storage.getBankProgress(bankId);
+    const total = bank.questions.length;
+    const today = Utils.todayStr();
+    const todayCount = progress.todayDate===today ? progress.todayDoneIds.length : 0;
+
+    this.$main.innerHTML = `
+      <div class="back-link" data-action="goHome">← 返回首頁</div>
+
+      <div class="stat-grid">
+        <div class="stat-box"><div class="num">${total}</div><div class="lbl">總題數</div></div>
+        <div class="stat-box"><div class="num">${progress.done.length}</div><div class="lbl">已完成</div></div>
+        <div class="stat-box"><div class="num">${progress.favorites.length}</div><div class="lbl">收藏數</div></div>
+        <div class="stat-box"><div class="num">${progress.wrong.length}</div><div class="lbl">錯題數</div></div>
+      </div>
+
+      <div class="section-title">今日練習目標：${todayCount} / ${progress.todayGoal||10} 題</div>
+      <div class="goal-options">
+        ${[10,20,30].map(g=>`<div class="goal-opt ${progress.todayGoal===g?'active':''}" data-action="setGoal" data-goal="${g}">${g}題</div>`).join("")}
+      </div>
+
+      <div class="section-title">選擇學習模式</div>
+      <div class="mode-grid">
+        <div class="mode-btn" data-action="startBrowse"><span class="emoji">📖</span><span class="label">瀏覽模式</span></div>
+        <div class="mode-btn" data-action="startQuiz" data-source="random"><span class="emoji">🔀</span><span class="label">隨機抽題</span></div>
+        <div class="mode-btn" data-action="startQuiz" data-source="today"><span class="emoji">🎯</span><span class="label">今日練習</span></div>
+        <div class="mode-btn" data-action="startQuiz" data-source="wrong"><span class="emoji">❌</span><span class="label">錯題複習</span></div>
+        <div class="mode-btn" data-action="startQuiz" data-source="favorite"><span class="emoji">⭐</span><span class="label">收藏複習</span></div>
+        <div class="mode-btn" data-action="startQuiz" data-source="sequential"><span class="emoji">📋</span><span class="label">依序測驗</span></div>
+      </div>
+    `;
+  },
+
+  // ------------------------------- 瀏覽模式 -------------------------------
+  startBrowse(bankId){
+    this.state.screen = "browse";
+    this.state.browseCategory = "全部";
+    this.state.browseKeyword = "";
+    this.renderBrowse();
+  },
+
+  renderBrowse(){
+    const bankId = this.state.bankId;
+    const bank = BankManager.getBank(bankId);
+    this.setTopbarTitle("📖 瀏覽模式");
+    const categories = BankManager.getCategories(bankId);
+    const list = BankManager.filterQuestions(bankId, {
+      category:this.state.browseCategory, keyword:this.state.browseKeyword
+    });
+    const progress = Storage.getBankProgress(bankId);
+
+    let html = `
+      <div class="back-link" data-action="backToBankHome">← 返回模式選擇</div>
+      <div class="searchbar">
+        🔍 <input type="text" id="browseSearchInput" placeholder="搜尋題號、關鍵字、題目或答案" value="${Utils.escapeHtml(this.state.browseKeyword)}">
+      </div>
+      <div class="chip-row" id="categoryChips">
+        ${categories.map(c=>`<div class="chip ${c===this.state.browseCategory?'active':''}" data-action="filterCategory" data-cat="${Utils.escapeHtml(c)}">${Utils.escapeHtml(c)}</div>`).join("")}
+      </div>
+      <div class="section-title">共 ${list.length} 題</div>
+    `;
+
+    if(list.length===0){
+      html += `<div class="empty-state"><span class="emoji">🔍</span>找不到符合的題目</div>`;
+    } else {
+      list.forEach(q=>{
+        const isFav = progress.favorites.includes(q.id);
+        html += `
+        <div class="card qa-card">
+          <div class="qa-meta">
+            <span class="qa-id">No.${q.id}</span>
+            <span class="qa-tag">${Utils.escapeHtml(q.category||"")}${q.chapter? " · "+Utils.escapeHtml(q.chapter):""}</span>
+          </div>
+          <div class="qa-q">${Utils.escapeHtml(q.question)}</div>
+          <div class="qa-a">${Utils.escapeHtml(q.answer)}</div>
+          <div class="qa-actions">
+            <button class="star-btn ${isFav?'active':''}" data-action="toggleFav" data-qid="${q.id}">${isFav?'★':'☆'}</button>
+          </div>
+        </div>`;
+      });
+    }
+    this.$main.innerHTML = html;
+
+    const input = document.getElementById("browseSearchInput");
+    if(input){
+      input.addEventListener("input", e=>{
+        this.state.browseKeyword = e.target.value;
+        this.renderBrowse();
+        const i2 = document.getElementById("browseSearchInput");
+        if(i2){ i2.focus(); i2.setSelectionRange(i2.value.length, i2.value.length); }
+      });
+    }
+  },
+
+  // ------------------------------- 測驗模式 -------------------------------
+  startQuiz(bankId, source){
+    const progress = Storage.getBankProgress(bankId);
+    let list = [];
+    let label = "";
+    const bank = BankManager.getBank(bankId);
+
+    if(source==="random"){
+      list = Utils.shuffle(bank.questions); label="🔀 隨機抽題";
+    } else if(source==="sequential"){
+      list = bank.questions.slice(); label="📋 依序測驗";
+    } else if(source==="wrong"){
+      list = Utils.shuffle(bank.questions.filter(q=>progress.wrong.includes(q.id))); label="❌ 錯題複習";
+    } else if(source==="favorite"){
+      list = Utils.shuffle(bank.questions.filter(q=>progress.favorites.includes(q.id))); label="⭐ 收藏複習";
+    } else if(source==="today"){
+      const today = Utils.todayStr();
+      const doneToday = (progress.todayDate===today)? progress.todayDoneIds : [];
+      const remain = bank.questions.filter(q=>!doneToday.includes(q.id));
+      const goal = progress.todayGoal||10;
+      list = Utils.shuffle(remain).slice(0, Math.max(goal - doneToday.length, 0));
+      label = "🎯 今日練習";
+      if(list.length===0){
+        Utils.toast("今日目標已完成！🎉");
+      }
+    }
+
+    if(list.length===0){
+      Utils.toast("此分類目前沒有題目");
+      return;
+    }
+
+    this.state.screen = "quiz";
+    this.state.quizQueue = list;
+    this.state.quizIndex = 0;
+    this.state.quizSourceLabel = label;
+    this.renderQuiz();
+  },
+
+  renderQuiz(){
+    const bankId = this.state.bankId;
+    const q = this.state.quizQueue[this.state.quizIndex];
+    const total = this.state.quizQueue.length;
+    const progress = Storage.getBankProgress(bankId);
+    const isFav = progress.favorites.includes(q.id);
+    this.setTopbarTitle(this.state.quizSourceLabel);
+
+    Storage.setLastRead(bankId, {mode:"quiz", index:this.state.quizIndex});
+
+    this.$main.innerHTML = `
+      <div class="back-link" data-action="backToBankHome">← 返回模式選擇</div>
+      <div class="quiz-wrap">
+        <div class="quiz-progress">
+          <span>第 ${this.state.quizIndex+1} / ${total} 題</span>
+          <button class="star-btn ${isFav?'active':''}" data-action="toggleFav" data-qid="${q.id}" style="font-size:24px;">${isFav?'★':'☆'}</button>
+        </div>
+        <div class="quiz-card" id="quizCard">
+          <div class="qtag">No.${q.id} · ${Utils.escapeHtml(q.category||"")}</div>
+          <div class="qtext">${Utils.escapeHtml(q.question)}</div>
+          <div class="atext">${Utils.escapeHtml(q.answer)}</div>
+          <button class="btn reveal-btn" data-action="revealAnswer">👁️ 顯示答案</button>
+        </div>
+        <div class="quiz-bottom-actions">
+          <button class="judge-btn unknow" data-action="judge" data-know="0">❌ 不熟</button>
+          <button class="judge-btn know" data-action="judge" data-know="1">✅ 已會</button>
+        </div>
+        <div class="swipe-hint">👈 左右滑動切換題目　／　電腦可用 ← → 與空白鍵</div>
+      </div>
+    `;
+    this.bindSwipe();
+  },
+
+  revealAnswer(){
+    const card = document.getElementById("quizCard");
+    if(card) card.classList.add("show-answer");
+  },
+
+  nextQuiz(){
+    if(this.state.quizIndex < this.state.quizQueue.length-1){
+      this.state.quizIndex++;
+      this.renderQuiz();
+    } else {
+      Utils.toast("已完成本輪所有題目，重新洗牌🔄");
+      this.state.quizQueue = Utils.shuffle(this.state.quizQueue);
+      this.state.quizIndex = 0;
+      this.renderQuiz();
+    }
+  },
+  prevQuiz(){
+    if(this.state.quizIndex>0){
+      this.state.quizIndex--;
+      this.renderQuiz();
+    }
+  },
+
+  bindSwipe(){
+    const card = document.getElementById("quizCard");
+    if(!card) return;
+    let startX=0, startY=0, moved=false;
+    card.addEventListener("touchstart", e=>{
+      startX = e.touches[0].clientX; startY = e.touches[0].clientY; moved=false;
+    }, {passive:true});
+    card.addEventListener("touchmove", ()=>{ moved=true; }, {passive:true});
+    card.addEventListener("touchend", e=>{
+      if(!moved) return;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+      if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)){
+        if(dx<0) View.nextQuiz(); else View.prevQuiz();
+      }
+    }, {passive:true});
+  },
+
+  // ------------------------------- 共用導覽 -------------------------------
+  goHome(){ this.renderHome(); },
+  openBank(bankId){ this.renderBankHome(bankId); Storage.updateBankProgress(bankId, ()=>{}); },
+  backToBankHome(){ this.renderBankHome(this.state.bankId); }
+};
+
+
+/* ====================================================================================
+   五、事件控制 (Event Handlers)
+   ----------------------------------------------------------------------------------
+   採用事件委派(Event Delegation)，所有 data-action 點擊統一由此處理。
+   ==================================================================================== */
+document.addEventListener("click", function(e){
+  const target = e.target.closest("[data-action]");
+  if(!target) return;
+  const action = target.dataset.action;
+
+  switch(action){
+    case "openBank":
+      View.openBank(target.dataset.bank);
+      break;
+    case "goHome":
+      View.goHome();
+      break;
+    case "backToBankHome":
+      View.backToBankHome();
+      break;
+    case "setGoal":
+      Storage.setTodayGoal(View.state.bankId, parseInt(target.dataset.goal,10));
+      View.renderBankHome(View.state.bankId);
+      break;
+    case "startBrowse":
+      View.startBrowse(View.state.bankId);
+      break;
+    case "startQuiz":
+      View.startQuiz(View.state.bankId, target.dataset.source);
+      break;
+    case "filterCategory":
+      View.state.browseCategory = target.dataset.cat;
+      View.renderBrowse();
+      break;
+    case "toggleFav": {
+      const qid = parseInt(target.dataset.qid,10);
+      const nowFav = Storage.toggleFavorite(View.state.bankId, qid);
+      target.textContent = nowFav ? "★" : "☆";
+      target.classList.toggle("active", nowFav);
+      break;
+    }
+    case "revealAnswer":
+      View.revealAnswer();
+      break;
+    case "judge": {
+      const know = target.dataset.know === "1";
+      const q = View.state.quizQueue[View.state.quizIndex];
+      Storage.markJudge(View.state.bankId, q.id, know);
+      Utils.toast(know ? "標記為已會 ✅" : "已加入錯題集 ❌");
+      View.nextQuiz();
+      break;
+    }
+  }
+});
+
+// 鍵盤操作：← → 切換題目；空白鍵顯示答案
+document.addEventListener("keydown", function(e){
+  if(View.state.screen !== "quiz") return;
+  if(e.code === "ArrowRight"){ View.nextQuiz(); }
+  else if(e.code === "ArrowLeft"){ View.prevQuiz(); }
+  else if(e.code === "Space"){ e.preventDefault(); View.revealAnswer(); }
+});
+
+// -------------------- 設定面板（匯入 / 匯出）--------------------
+const settingsModal = document.getElementById("settingsModal");
+document.getElementById("btnSettings").addEventListener("click", ()=>{
+  settingsModal.classList.remove("hidden");
+});
+document.getElementById("closeSettings").addEventListener("click", ()=>{
+  settingsModal.classList.add("hidden");
+});
+settingsModal.addEventListener("click", e=>{
+  if(e.target === settingsModal) settingsModal.classList.add("hidden");
+});
+
+// 匯出 JSON 備份檔
+document.getElementById("btnExportFile").addEventListener("click", ()=>{
+  const jsonStr = BankManager.exportAllAsJSON();
+  const blob = new Blob([jsonStr], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const d = new Date();
+  const fname = `題庫備份_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,"0")}${String(d.getDate()).padStart(2,"0")}.json`;
+  a.href = url; a.download = fname;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  Utils.toast("已下載 JSON 備份檔");
+});
+
+// 從檔案匯入：讀取後填入 textarea，讓使用者選擇 新增/取代
+document.getElementById("fileImport").addEventListener("change", function(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt){
+    document.getElementById("importTextarea").value = evt.target.result;
+    Utils.toast("檔案已讀取，請選擇「新增」或「取代」");
+  };
+  reader.onerror = function(){
+    Utils.toast("讀取檔案失敗");
+  };
+  reader.readAsText(file, "UTF-8");
+});
+
+function doImport(mode){
+  const raw = document.getElementById("importTextarea").value.trim();
+  if(!raw){ Utils.toast("請先貼上或載入 JSON 內容"); return; }
+  let data;
+  try{
+    data = JSON.parse(raw);
+  }catch(err){
+    Utils.toast("JSON 格式錯誤，請檢查內容");
+    return;
+  }
+  const errMsg = BankManager.validateImportData(data);
+  if(errMsg){
+    Utils.toast("格式不符：" + errMsg);
+    return;
+  }
+  if(mode==="merge"){
+    BankManager.mergeImport(data);
+    Utils.toast("已新增 / 更新題庫 ✅");
+  } else {
+    if(!confirm("確定要取代目前所有題庫嗎？此動作無法復原。")) return;
+    BankManager.replaceImport(data);
+    Utils.toast("已取代全部題庫 ✅");
+  }
+  settingsModal.classList.add("hidden");
+  document.getElementById("importTextarea").value = "";
+  View.goHome();
+}
+document.getElementById("btnImportMerge").addEventListener("click", ()=>doImport("merge"));
+document.getElementById("btnImportReplace").addEventListener("click", ()=>doImport("replace"));
+
+document.getElementById("btnResetAll").addEventListener("click", ()=>{
+  if(!confirm("確定要清空全部資料（含學習進度）並還原為預設題庫嗎？此動作無法復原。")) return;
+  Storage.clearAll();
+  BankManager.resetToDefault();
+  Utils.toast("已還原為預設題庫");
+  settingsModal.classList.add("hidden");
+  View.goHome();
+});
+
+
+/* ====================================================================================
+   七、初始化 (Init)
+   ==================================================================================== */
+window.addEventListener("DOMContentLoaded", function(){
+  BankManager.init();
+  View.init();
+});
+</script>
+</body>
+</html>
