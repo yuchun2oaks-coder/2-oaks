@@ -203,6 +203,50 @@ textarea{min-height:130px;resize:vertical;}
 .goal-opt.active{background:var(--gold);color:#1A1A1A;border-color:var(--gold);}
 
 ::-webkit-scrollbar{width:0px;}
+
+/* ── 多題型測驗元件 ── */
+.type-badge{display:inline-block;font-size:11px;padding:3px 8px;border-radius:8px;
+  background:rgba(212,175,55,.15);color:var(--gold);border:1px solid var(--gold-dim);
+  margin-left:6px;font-weight:700;vertical-align:middle;}
+.opt-list{display:flex;flex-direction:column;gap:10px;margin-top:14px;}
+.opt-item{
+  background:var(--bg-card2);border:1.5px solid #3a3a3a;border-radius:14px;
+  padding:13px 14px;font-size:14.5px;line-height:1.5;cursor:pointer;transition:.12s;
+}
+.opt-item.selected{border-color:var(--gold);background:rgba(212,175,55,.12);}
+.opt-item.correct{border-color:var(--ok)!important;background:rgba(79,154,106,.18);color:var(--ok);}
+.opt-item.incorrect{border-color:var(--danger)!important;background:rgba(192,82,74,.18);color:var(--danger);}
+.opt-item.disabled-hover{cursor:default;}
+.tf-row{display:flex;gap:12px;margin-top:14px;}
+.tf-btn{flex:1;padding:18px;border-radius:14px;font-weight:700;font-size:16px;
+  text-align:center;cursor:pointer;background:var(--bg-card2);border:1.5px solid #3a3a3a;}
+.tf-btn.correct{border-color:var(--ok)!important;background:rgba(79,154,106,.18);color:var(--ok);}
+.tf-btn.incorrect{border-color:var(--danger)!important;background:rgba(192,82,74,.18);color:var(--danger);}
+.match-row{display:flex;align-items:center;gap:10px;margin-top:10px;
+  background:var(--bg-card2);border-radius:12px;padding:10px 12px;}
+.match-left{flex:0 0 38%;font-size:13px;font-weight:700;color:var(--gold);line-height:1.4;}
+.match-row select{flex:1;background:#1f1f1f;color:var(--text);border:1px solid #3a3a3a;
+  border-radius:10px;padding:8px;font-size:13px;outline:none;}
+.match-row select.ok{border-color:var(--ok);}
+.match-row select.ng{border-color:var(--danger);}
+.order-built{display:flex;flex-direction:column;gap:8px;min-height:46px;
+  background:var(--bg-card2);border-radius:12px;padding:10px;margin-top:14px;
+  border:1.5px dashed #3a3a3a;}
+.order-chip{background:var(--gold);color:#1A1A1A;padding:9px 12px;
+  border-radius:10px;font-size:13.5px;font-weight:700;
+  display:flex;justify-content:space-between;align-items:center;gap:6px;}
+.order-pool{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+.order-chip-src{background:#1f1f1f;border:1px solid #3a3a3a;border-radius:10px;
+  padding:9px 12px;font-size:13px;cursor:pointer;transition:.12s;}
+.order-chip-src.used{opacity:.22;pointer-events:none;}
+.explain-box{margin-top:16px;padding-top:14px;border-top:1px dashed #3a3a3a;display:none;}
+.quiz-card.show-answer .explain-box{display:block;}
+.explain-label{font-size:12px;color:var(--gold);font-weight:700;margin-bottom:6px;}
+.explain-text{font-size:14px;line-height:1.8;color:#e0e0e0;white-space:pre-line;}
+.result-banner{margin-top:14px;padding:11px 14px;border-radius:12px;
+  font-weight:700;font-size:14px;text-align:center;}
+.result-banner.right{background:rgba(79,154,106,.18);color:var(--ok);}
+.result-banner.wrong{background:rgba(192,82,74,.18);color:var(--danger);}
 </style>
 </head>
 <body>
@@ -392,6 +436,492 @@ const defaultQuestionBanks = {
 
 
 /* ====================================================================================
+   一之二、多題型題庫（六種題型：問答、四選一、多選、是非、配對、排序）
+   ----------------------------------------------------------------------------------
+   此題庫與上方「原始問答題庫」完全獨立，各自保存學習進度。
+   兩份題庫同時顯示於首頁，可分別進入學習。
+
+   題型欄位說明：
+     type:"short_answer"      → answer:"文字答案"
+     type:"multiple_choice"   → options:["A.…","B.…","C.…","D.…"]  answer:"A"
+     type:"multiple_select"   → options:[…]  answer:["A","C"]
+     type:"true_false"        → answer:"true"|"false"
+     type:"matching"          → pairs:[{left:"…",right:"…"},…]
+     type:"ordering"          → items:[依正確順序排列的字串陣列]
+   ==================================================================================== */
+const TYPED_BANK_ID = "tw_neigong_typed";
+
+const typedQuestionBanks = {
+  [TYPED_BANK_ID]: {
+    id: TYPED_BANK_ID,
+    name: "TW 內功心法 多題型挑戰題庫",
+    questions: [
+      // ── 字箴言 ──
+      {id:101, knowledgeId:"TW-001", category:"字箴言", chapter:"P1", difficulty:"medium", tags:["字箴言","10字"], type:"matching",
+       learningObjective:"熟記各字箴言對應的內容",
+       question:"請將下列字箴言與其對應內容配對：",
+       pairs:[
+         {left:"10字箴言", right:"閱讀、聆聽、凝結、說明、創作"},
+         {left:"09字箴言", right:"定標準、做產品、心服務"},
+         {left:"08字箴言", right:"人無我有、人有我優"},
+         {left:"07字箴言(3A定義)", right:"建築、藝術、優+生活"},
+         {left:"06字箴言", right:"管理(紀律)、教育、支持"}
+       ],
+       explanation:"字箴言數字越大展開的構面越多，數字越小則越聚焦核心。10字是行動方法，09字是成果標準，08字是差異化策略，07字是品牌DNA，06字是組織骨幹。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:102, knowledgeId:"TW-001b", category:"字箴言", chapter:"P1", difficulty:"easy", tags:["字箴言","3A"], type:"multiple_choice",
+       learningObjective:"辨識07字箴言(3A定義)的三個組成",
+       question:"07字箴言（3A定義）中，「A+live」指的是什麼？",
+       options:["A. 優+生活","B. 高+科技","C. 美+建築","D. 藝+文化"],
+       answer:"A",
+       explanation:"07字箴言3A定義：建築(Architecture)、藝術(Art)、優+生活(A+live)。A+live 是「優生活」的品牌化表達，代表超越居住本身，讓生活品質更優化。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:103, knowledgeId:"TW-002", category:"字箴言", chapter:"P1", difficulty:"medium", tags:["智慧同心圓"], type:"ordering",
+       learningObjective:"理解智慧同心圓由淺至深的六層次",
+       question:"請依「智慧同心圓」由淺至深的正確順序排列：",
+       items:["資料(Data)","資訊(Information)","知識(Knowledge)","事理(Logic)","學問(Know-how)","智慧(Wisdom)"],
+       explanation:"原始資料→整理後成資訊→系統化為知識→理解因果成事理→累積實務成學問→融會貫通升為智慧。每層都是上一層的昇華，不可跳級。",
+       source:{chapter:"P1",page:"1"}},
+
+      // ── TW 系統心法 ──
+      {id:104, knowledgeId:"TW-003", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["TW循環"], type:"ordering",
+       learningObjective:"熟記TW循環六大步驟",
+       question:"請依正確順序排列「TW循環」的六大步驟：",
+       items:["分析環境","決定策略","解析結構","設計流程","行為展現","結果(產出)"],
+       explanation:"TW循環是完整管理迴圈，前一步驟的輸出是下一步驟的輸入。「分析→策略→結構→流程→展現→產出」，缺任何一步都會影響結果品質。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:105, knowledgeId:"TW-004", category:"管理與系統心法", chapter:"P1", difficulty:"easy", tags:["TW五大硬體"], type:"multiple_choice",
+       learningObjective:"辨識TW五大硬體的組成",
+       question:"下列何者「不屬於」TW五大硬體？",
+       options:["A. 結構","B. 公設","C. 機電","D. 品牌"],
+       answer:"D",
+       explanation:"TW五大硬體為：結構、公設、機電、外觀、標配。「品牌」是企業軟性資產，不在硬體範疇之內。A/B/C均是實體建築構成要素。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:106, knowledgeId:"TW-004b", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["TW五大硬體"], type:"multiple_select",
+       learningObjective:"理解TW五大硬體再細分的三大類",
+       question:"TW五大硬體再細分的三大類為何？（選出全部正確選項）",
+       options:["A. 地上+地下層","B. 住戶專有及公有空間","C. 使照前+後","D. 高樓層與低樓層"],
+       answer:["A","B","C"],
+       explanation:"三大類為：①地上+地下層 ②住戶專有及公有空間 ③使照前+後，合計15大類。選項D「高樓層與低樓層」是常見迷惑選項，原文並無此分類。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:107, knowledgeId:"TW-005", category:"管理與系統心法", chapter:"P1", difficulty:"easy", tags:["TW三比"], type:"multiple_choice",
+       learningObjective:"熟記TW三比的三個比較構面",
+       question:"「TW三比」的三個比較構面為何？",
+       options:["A. 比前期、比同業、比目標","B. 比價格、比品質、比進度","C. 比設計、比施工、比交屋","D. 比客戶、比競品、比市場"],
+       answer:"A",
+       explanation:"TW三比：①比前期（與自己的過去比）②比同業（與市場競品比）③比目標（與設定標準比）。三個維度360度檢視專案表現。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:108, knowledgeId:"TW-006", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["價值工程"], type:"true_false",
+       learningObjective:"確認價值工程公式正確內容",
+       question:"價值工程公式為：假設(要與不要) × 項目 × 數量 × 單價 × 付款方式，依高性價比模式執行。",
+       answer:"true",
+       explanation:"此為原文定義，五個元素缺一不可。先判斷「要與不要」是關鍵的第一步，能有效篩除不必要支出，剩餘四項再逐一優化。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:109, knowledgeId:"TW-007", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["競爭優勢"], type:"multiple_choice",
+       learningObjective:"熟記企業成功方程式",
+       question:"TW「企業成功方程式」（競爭優勢公式）為何？",
+       options:["A. 競爭策略×強化組織能力","B. 價格×品質×服務","C. 規模×速度×效率","D. 人脈×資源×創新"],
+       answer:"A",
+       explanation:"TW競爭優勢＝競爭策略×強化組織能力，兩者相乘而非相加，意指策略再好若組織能力不足，成果會大打折扣；反之亦然。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:110, knowledgeId:"TW-008", category:"管理與系統心法", chapter:"P1", difficulty:"hard", tags:["決勝邊緣理論"], type:"multiple_choice",
+       learningObjective:"理解決勝邊緣理論數字意涵",
+       question:"TW8次進化理論中，1.1^8與0.9^8的計算結果及相差倍數為何？",
+       options:["A. 2.14與0.43，相差5倍","B. 1.8與0.5，相差3倍","C. 2.5與0.3，相差6倍","D. 1.5與0.6，相差2倍"],
+       answer:"A",
+       explanation:"1.1^8≈2.14，0.9^8≈0.43，相差約5倍。說明每次只提升或下滑10%，經8次累積後差距可達5倍，因此持續微進步比間歇性大躍進更有威力。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:111, knowledgeId:"TW-009", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["個人競爭優勢"], type:"matching",
+       learningObjective:"區分20世紀與21世紀個人成功方程式",
+       question:"請將「世紀」與對應的「個人成功方程式」配對：",
+       pairs:[
+         {left:"20世紀", right:"態度×努力×能力"},
+         {left:"21世紀", right:"想法×熱情×能力"}
+       ],
+       explanation:"時代演進讓成功公式從「態度/努力」進化為「想法/熱情」，強調創意思維與內在驅動力的重要性取代了單純的服從勤奮。兩個公式中「能力」都是共同元素。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:112, knowledgeId:"TW-010", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["強化組織能力"], type:"ordering",
+       learningObjective:"熟記強化組織能力執行流程",
+       question:"請依正確順序排列TW強化組織能力的執行步驟：",
+       items:["閱讀（吸收重要訊息）","聆聽（積極傾聽7好習慣）","凝結（觀察，有觀點）","說明（精煉有力詞句）","創作（完整可執行方案）"],
+       explanation:"閱讀是輸入，聆聽是接收，凝結是思考，說明是輸出，創作是落實。五步驟形成完整的「知識內化→行動轉化」迴路，最後還需反覆驗證修正。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:113, knowledgeId:"TW-011", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["積極傾聽"], type:"multiple_choice",
+       learningObjective:"辨識積極傾聽七個好習慣的正確內容",
+       question:"下列何者「不是」教材中積極傾聽七個好習慣之一？",
+       options:["A. 眼神接觸、肢體語言","B. 不打岔","C. 主動打斷對方表達己見","D. 手要記筆"],
+       answer:"C",
+       explanation:"七個好習慣：①眼神肢體 ②尊重的問題 ③不打岔 ④手要記筆 ⑤確認 ⑥觀點回應 ⑦將心比心。選項C「主動打斷對方」恰好與③「不打岔」相反，是錯誤行為。",
+       source:{chapter:"P1",page:"1"}},
+
+      // ── 真善美 ──
+      {id:114, knowledgeId:"TW-012", category:"核心定義字箴言", chapter:"P1", difficulty:"medium", tags:["真善美"], type:"matching",
+       learningObjective:"理解真善美三面向各自精神",
+       question:"請將「真、善、美」與其對應的精神配對：",
+       pairs:[
+         {left:"真：建築的初衷", right:"認真專注"},
+         {left:"善：建築的工藝", right:"精雕細琢"},
+         {left:"美：住戶的笑容", right:"貼心相待"}
+       ],
+       explanation:"真=認真專注（莫忘初衷）；善=精雕細琢（恆久工藝價值）；美=貼心相待（微笑實現更多生命美好）。三者共同構成TW對建築與服務的完整承諾。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:115, knowledgeId:"TW-012b", category:"核心定義字箴言", chapter:"P1", difficulty:"easy", tags:["真善美"], type:"true_false",
+       learningObjective:"確認精雕細琢對應到善",
+       question:"「精雕細琢」對應的是真善美中的「善——建築的工藝」。",
+       answer:"true",
+       explanation:"善=建築的工藝，精神是「精雕細琢」，意指打造營建工藝的恆久價值。三個精神中「認真專注」屬「真」，「貼心相待」屬「美」，務必區分清楚。",
+       source:{chapter:"P1",page:"1"}},
+
+      // ── 企業策略 / 管理 ──
+      {id:116, knowledgeId:"TW-013", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["企業策略"], type:"multiple_select",
+       learningObjective:"理解企業策略選擇三方向",
+       question:"教材提到的企業策略選擇方向包含下列哪些？（選出全部正確選項）",
+       options:["A. 目標集中(顧客導向)","B. 成本領先(人有我優)","C. 差異化(人無我有)","D. 規模擴張(快速展店)"],
+       answer:["A","B","C"],
+       explanation:"企業策略三方向：①目標集中(顧客導向) ②成本領先(人有我優) ③差異化(人無我有)，完整對應08字箴言「人無我有、人有我優」的差異化精神。選項D並非教材所提。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:117, knowledgeId:"TW-014", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["Slogan"], type:"multiple_choice",
+       learningObjective:"熟記Slogan中成長比例分配",
+       question:"TW Slogan中，個人成長來源比例分配為何？",
+       options:["A. 50靠自己+30靠環境+20靠主管","B. 40靠自己+30靠環境+30靠主管","C. 60靠自己+20靠環境+20靠主管","D. 50靠自己+20靠環境+30靠主管"],
+       answer:"A",
+       explanation:"50+30+20=100%。自己佔最大比重(50%)，強調主動性；環境其次(30%)；主管最少(20%)，說明外力是輔助，根本在自我提升。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:118, knowledgeId:"TW-015", category:"管理與系統心法", chapter:"P1", difficulty:"easy", tags:["管理學"], type:"multiple_choice",
+       learningObjective:"理解管理學第一堂課核心",
+       question:"管理學第一堂課指出，事物皆有幾個版本？分別是？",
+       options:["A. 三個版本：你的、我的、真相","B. 兩個版本：對與錯","C. 四個版本：你我他與真相","D. 沒有固定版本數"],
+       answer:"A",
+       explanation:"三個版本：你的、我的、真相——這三個版本難以找到完整一樣的可能，因此才需要管理學來對齊認知，降低落差。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:119, knowledgeId:"TW-016", category:"管理與系統心法", chapter:"P1", difficulty:"easy", tags:["5S","6S"], type:"ordering",
+       learningObjective:"熟記5S正確順序",
+       question:"請依正確順序排列「5S」的五個步驟：",
+       items:["整理","整頓","清潔","清掃","素養"],
+       explanation:"5S依序為整理→整頓→清潔→清掃→素養。6S在此基礎上再加「安全」。整理(去除不要的)→整頓(定位定址)→清潔(消除污染源)→清掃(維持環境)→素養(養成習慣)。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:120, knowledgeId:"TW-016b", category:"管理與系統心法", chapter:"P1", difficulty:"easy", tags:["5S","6S"], type:"true_false",
+       learningObjective:"確認6S與5S的關係",
+       question:"「6S」是在「5S」(整理、整頓、清潔、清掃、素養)的基礎上，再加入「安全」一項。",
+       answer:"true",
+       explanation:"5S(6S)：整理、整頓、清潔、清掃、素養/自律/紀律+(安全)，確認6S=5S+安全。",
+       source:{chapter:"P1",page:"1"}},
+
+      // ── 業主價值 / 三大 ──
+      {id:121, knowledgeId:"TW-017", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["業主價值"], type:"multiple_select",
+       learningObjective:"熟記業主價值五大組成",
+       question:"「業主價值」包含下列哪些項目？（選出全部正確選項）",
+       options:["A. 設計原意","B. 營造建設","C. 深耕物業","D. 會館經營","E. 活動策畫","F. 成本控制"],
+       answer:["A","B","C","D","E"],
+       explanation:"業主價值五項：設計原意、營造建設、深耕物業、會館經營、活動策畫。選項F成本控制雖重要，但並非業主價值同心圓的構成項目。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:122, knowledgeId:"TW-018", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["三大預算書"], type:"matching",
+       learningObjective:"熟記三大預算書與頁數對應",
+       question:"請將「TW三大預算書」與其頁數配對：",
+       pairs:[
+         {left:"投報預算", right:"1頁"},
+         {left:"評估預算", right:"5頁"},
+         {left:"執行預算", right:"25頁"}
+       ],
+       explanation:"預算書詳細程度隨流程遞增：投報(1頁)最精簡、評估(5頁)次之、執行(25頁)最詳盡。記憶口訣：1、5、25，像金字塔往下越來越詳細。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:123, knowledgeId:"TW-019", category:"管理與系統心法", chapter:"P1", difficulty:"easy", tags:["三大軟體"], type:"multiple_choice",
+       learningObjective:"辨識TW三大軟體",
+       question:"下列何者「不屬於」TW三大軟體？",
+       options:["A. 成交後的量身訂作","B. 交屋後的長期經營","C. 個人專屬的優生活服務","D. 施工前的成本控管"],
+       answer:"D",
+       explanation:"TW三大軟體：①成交後的量身訂作 ②交屋後的長期經營 ③個人專屬的優生活服務，三者都在「成交之後」，屬服務性質。施工前的成本控管屬硬體管理範疇。",
+       source:{chapter:"P1",page:"1"}},
+
+      // ── P2 知識點 ──
+      {id:124, knowledgeId:"TW-020", category:"管理與系統心法", chapter:"P2", difficulty:"medium", tags:["SMART理論"], type:"ordering",
+       learningObjective:"熟記SMART理論五個元素順序",
+       question:"請依正確順序排列「SMART理論」的五個元素：",
+       items:["傳播(Sender)","訊息(Message)","態度(Attitude)×高度(Altitude)","接收(Receiver)","目標(Target)"],
+       explanation:"SMART描述溝通完整鏈路：傳播者→訊息內容→態度/高度調節→被接收→達成目標。每個字母剛好拼出SMART，是記憶的好方法。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:125, knowledgeId:"TW-021", category:"管理與系統心法", chapter:"P2", difficulty:"easy", tags:["100%責任"], type:"multiple_choice",
+       learningObjective:"熟記100%責任的四個面向",
+       question:"同仁對自己職責須對哪四項皆負100%責任？",
+       options:["A. 安全、品質、進度、成本","B. 安全、品質、效率、利潤","C. 速度、品質、成本、服務","D. 安全、進度、利潤、形象"],
+       answer:"A",
+       explanation:"四項：安全、品質、進度、成本，是工程管理最核心的KPI，記憶口訣「安品進成」。B的「效率/利潤」、C的「速度/服務」、D的「利潤/形象」均非原文。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:126, knowledgeId:"TW-022", category:"管理與系統心法", chapter:"P2", difficulty:"hard", tags:["品質觀念"], type:"ordering",
+       learningObjective:"熟記品質觀念演進五級責任主體",
+       question:"請依「品質觀念演進五級」由低至高排列責任主體：",
+       items:["工人(檢查出來的品質)","師父(製作出來的品質)","設計師(設計出來的品質)","主管(管理出來的品質)","全公司(習慣出來的品質)"],
+       explanation:"品質從「被動檢查」逐步進化到「主動習慣」，責任主體從個別工人擴展到全公司。最高層次的品質是習慣，不需要依靠檢查也能維持。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:127, knowledgeId:"TW-023", category:"管理與系統心法", chapter:"P2", difficulty:"medium", tags:["6P"], type:"matching",
+       learningObjective:"熟記6P行銷組合",
+       question:"請將6P的英文縮寫與中文配對：",
+       pairs:[
+         {left:"Product", right:"產品"},
+         {left:"Price", right:"價格"},
+         {left:"Place", right:"通路"},
+         {left:"Promotion", right:"促銷"},
+         {left:"Package", right:"包裝"},
+         {left:"People", right:"人事"}
+       ],
+       explanation:"6P是傳統4P再加Package(包裝)與People(人事)，後兩者特別強調服務業與建築業的品牌呈現與人員素質。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:128, knowledgeId:"TW-024", category:"管理與系統心法", chapter:"P2", difficulty:"medium", tags:["6C"], type:"matching",
+       learningObjective:"熟記6C顧客導向模型",
+       question:"請將6C的英文與中文配對：",
+       pairs:[
+         {left:"Customer Solution", right:"顧客問題解決"},
+         {left:"Cost of Customer", right:"顧客成本"},
+         {left:"Convenience", right:"便利性"},
+         {left:"Communication", right:"溝通"},
+         {left:"CBD", right:"企業品牌定義"},
+         {left:"Celebrity Endorsement", right:"名人代言"}
+       ],
+       explanation:"6C對應6P：顧客問題解決(vs產品)、顧客成本(vs價格)、便利性(vs通路)、溝通(vs促銷)，後兩項CBD與名人代言是品牌層面的延伸。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:129, knowledgeId:"TW-025", category:"管理與系統心法", chapter:"P2", difficulty:"medium", tags:["教與學效果"], type:"ordering",
+       learningObjective:"熟記教學方式的記憶留存率由低到高",
+       question:"請依「記憶留存率由低到高」排列下列教學方式：",
+       items:["空口白話/口語傳達(10%)","白紙黑字/圖文傳達(30%)","影音動畫/聲光傳達(60%)","實際展現/親身演示(90%)"],
+       explanation:"留存率：口語10%→圖文30%→影音60%→親身演示90%。啟示：要讓別人記住，「讓他親自做」遠比「告訴他」有效9倍。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:130, knowledgeId:"TW-026", category:"管理與系統心法", chapter:"P2", difficulty:"easy", tags:["3D哲學"], type:"matching",
+       learningObjective:"熟記3D哲學三要素",
+       question:"請將3D哲學英文與中文配對：",
+       pairs:[
+         {left:"Define", right:"定義"},
+         {left:"Difference", right:"差異化"},
+         {left:"Difficult", right:"困難"}
+       ],
+       explanation:"3D哲學：先清楚定義目標，再思考如何差異化，並坦然面對過程中的困難。4D=3D+時間，加入時間軸讓思考更立體。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:131, knowledgeId:"TW-027", category:"管理與系統心法", chapter:"P2", difficulty:"easy", tags:["QBQ"], type:"true_false",
+       learningObjective:"確認QBQ定義",
+       question:"「QBQ」指的是「問題背後的問題」。",
+       answer:"true",
+       explanation:"QBQ (Question Behind the Question) 強調遇到問題時先反問自己「我能做什麼」，而不是急著歸咎他人或抱怨環境。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:132, knowledgeId:"TW-028", category:"管理與系統心法", chapter:"P2", difficulty:"easy", tags:["八二法則"], type:"multiple_choice",
+       learningObjective:"熟記八二法則比例",
+       question:"「八二法則」指出，多少百分比的重要事件能發揮出八成效果？",
+       options:["A. 20%","B. 50%","C. 80%","D. 10%"],
+       answer:"A",
+       explanation:"20%的重要事件→80%的效果。啟示：聚焦關鍵少數，而非分散心力在所有事情上。選項B(50%)是平均主義，C(80%)是本末倒置，D(10%)則過於極端。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:133, knowledgeId:"TW-029", category:"管理與系統心法", chapter:"P2", difficulty:"medium", tags:["溝通黃金法則"], type:"matching",
+       learningObjective:"熟記溝通黃金法則55/38/7比例",
+       question:"請將溝通黃金法則的比例與對應內容配對：",
+       pairs:[
+         {left:"55%", right:"肢體語言(Look & Link)"},
+         {left:"38%", right:"聲音語調(Sound of Voice)"},
+         {left:"7%", right:"文字內容(Words)"}
+       ],
+       explanation:"55+38+7=100%。超過九成的溝通影響力來自非語言元素（肢體+語調），文字內容本身僅佔7%。這說明「怎麼說」遠比「說什麼」更重要。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:134, knowledgeId:"TW-030", category:"管理與系統心法", chapter:"P2", difficulty:"hard", tags:["道法術器勢方"], type:"matching",
+       learningObjective:"熟記道法術器勢方對應意涵",
+       question:"請將「道、法、術、器、勢、方」與其意涵配對：",
+       pairs:[
+         {left:"道", right:"問題本質與解決之道"},
+         {left:"法", right:"方法論"},
+         {left:"術", right:"創新"},
+         {left:"器", right:"學習積累、具體行動"},
+         {left:"勢", right:"工具或資源、屬性差異"},
+         {left:"方", right:"目標方向"}
+       ],
+       explanation:"六字架構：理解問題(道)→建立方法(法)→創新突破(術)→落實行動(器)→掌握資源(勢)→對齊目標(方)，是完整的系統思維鏈。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:135, knowledgeId:"TW-031", category:"管理與系統心法", chapter:"P2", difficulty:"medium", tags:["可複製的領導力"], type:"ordering",
+       learningObjective:"熟記可複製領導力五個節點順序",
+       question:"請依正確順序排列「可複製的領導力」五個節點：",
+       items:["說明任務（了解責任目標）","複叙任務（團隊建立共同目標）","執行原因（清晰的理解）","狀況提問與回報（遇到狀況回報）","你是主管會怎麼做（鼓勵創新）"],
+       explanation:"五個節點依序確保任務從「布達→確認理解→明白原因→持續回報→自主思考」的完整閉環，讓領導力可以複製在每一個任務交辦中。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:136, knowledgeId:"TW-031b", category:"管理與系統心法", chapter:"P2", difficulty:"easy", tags:["可複製的領導力"], type:"true_false",
+       learningObjective:"確認可複製領導力包含說明任務與複叙任務",
+       question:"「可複製的領導力」五個節點中，第一個是「說明任務」，第二個是「複叙任務」。",
+       answer:"true",
+       explanation:"五節點：①說明任務→②複叙任務→③執行原因→④狀況提問與回報→⑤你是主管會怎麼做。前兩步確保雙向確認，是任務交辦中最容易遺漏的環節。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:137, knowledgeId:"TW-032", category:"理念語錄與工作哲學", chapter:"P2", difficulty:"easy", tags:["優秀工程師"], type:"multiple_choice",
+       learningObjective:"熟記優秀工程師性格組成",
+       question:"教材中「優秀工程師」的定義為何？",
+       options:["A. 80%工程師性格+20%設計師性格","B. 50%工程師+50%設計師","C. 100%工程師性格","D. 80%設計師+20%工程師"],
+       answer:"A",
+       explanation:"80%工程師性格(嚴謹、精確、負責)+20%設計師性格(美感、創意、使用者思維)，比例上仍以工程本職為主，但須具備設計敏感度。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:138, knowledgeId:"TW-033", category:"理念語錄與工作哲學", chapter:"P2", difficulty:"medium", tags:["業主定義"], type:"true_false",
+       learningObjective:"確認業主定義的交屋前後差異",
+       question:"「業主」的定義在交屋前後是相同的，皆專指買地規劃團隊。",
+       answer:"false",
+       explanation:"交屋前的「業主」指陳先生、執行長、設計部、買地規劃等公司內部決策者；交屋後的「業主」才是已過戶的購屋客戶。兩者完全不同，必須區分。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:139, knowledgeId:"TW-034", category:"理念語錄與工作哲學", chapter:"P2", difficulty:"easy", tags:["售價"], type:"multiple_choice",
+       learningObjective:"熟記售價計算公式",
+       question:"TW的售價計算公式為何？",
+       options:["A. 買地成本+營建成本+利潤","B. 建材成本+人工成本+稅金","C. 土地市值×坪數","D. 營建成本×通膨率"],
+       answer:"A",
+       explanation:"售價=買地成本+營建成本+利潤，是最基本的成本加成定價邏輯。三項缺一不可，利潤反映品牌價值與企業持續經營的需求。",
+       source:{chapter:"P2",page:"2"}},
+
+      // ── P3 知識點 ──
+      {id:140, knowledgeId:"TW-035", category:"管理與系統心法", chapter:"P3", difficulty:"medium", tags:["房地產價值"], type:"multiple_choice",
+       learningObjective:"熟記房地產價值分析公式",
+       question:"教材中「房地產價值分析」公式為何？",
+       options:["A. 品牌×地段×規劃×施工×經營","B. 地段×坪數×屋齡","C. 品牌×價格×促銷","D. 規劃×施工×成本"],
+       answer:"A",
+       explanation:"五元素相乘：品牌×地段×規劃×施工×經營，任何一項為零則整體價值歸零。五字口訣「品地規施營」。",
+       source:{chapter:"P3",page:"3"}},
+
+      {id:141, knowledgeId:"TW-036", category:"公司資料", chapter:"P3", difficulty:"medium", tags:["台中品牌建商"], type:"multiple_choice",
+       learningObjective:"熟記一聯三寶由雙陸的品牌建商名單",
+       question:"台中高價住宅「一聯三寶由雙陸」不包含下列何者？",
+       options:["A. 聯聚","B. 寶輝","C. 麗寶","D. 由鉅"],
+       answer:"C",
+       explanation:"一聯三寶由雙陸：聯聚(聯)、寶輝/龍寶/寶璽(三寶)、由鉅(由)、雙橡園(雙)、大陸(陸)，共7家。「麗寶」不在此列，是常見混淆的干擾選項。",
+       source:{chapter:"P3",page:"3"}},
+
+      {id:142, knowledgeId:"TW-037", category:"管理與系統心法", chapter:"P3", difficulty:"hard", tags:["營建價值體系3態"], type:"ordering",
+       learningObjective:"熟記營建價值體系三態循環順序",
+       question:"請依正確順序排列「營建價值體系」三態：",
+       items:["營造態","完成態","享受態"],
+       explanation:"三態循環：設計施工(營造態)→品保確認(完成態)→使用回饋(享受態)→回饋再導入下一輪營造態。這是持續精進的「永動循環」，不是線性流程。",
+       source:{chapter:"P3",page:"3"}},
+
+      {id:143, knowledgeId:"TW-038", category:"管理與系統心法", chapter:"P3", difficulty:"hard", tags:["孫子兵法"], type:"matching",
+       learningObjective:"熟記孫子兵法道天地將法對應意涵",
+       question:"請將孫子兵法「道、天、地、將、法」與其意涵配對：",
+       pairs:[
+         {left:"道", right:"君主的領導力"},
+         {left:"天", right:"天時"},
+         {left:"地", right:"地利"},
+         {left:"將", right:"統帥和將領的能耐"},
+         {left:"法", right:"軍法"}
+       ],
+       explanation:"老闆以「道天地將法」思考大局，主管則以「智信仁勇嚴」執行日常。兩個框架各司其職，共同構成完整的組織治理體系。",
+       source:{chapter:"P3",page:"3"}},
+
+      {id:144, knowledgeId:"TW-039", category:"管理與系統心法", chapter:"P3", difficulty:"hard", tags:["智信仁勇嚴"], type:"matching",
+       learningObjective:"熟記主管應具備的智信仁勇嚴",
+       question:"請將「智、信、仁、勇、嚴」與其對應意涵配對：",
+       pairs:[
+         {left:"智", right:"能想出克敵制勝之策"},
+         {left:"信", right:"信任與誠信"},
+         {left:"仁", right:"仁慈仁愛，待人友善"},
+         {left:"勇", right:"做事果斷，做應做該做的事"},
+         {left:"嚴", right:"講紀律行制度，先嚴己後嚴人"}
+       ],
+       explanation:"「嚴」特別強調先嚴己後嚴人，是主管以身作則的核心。「智」是策略能力，「信」是人格基礎，「仁」是人際根本，「勇」是執行魄力。",
+       source:{chapter:"P3",page:"3"}},
+
+      {id:145, knowledgeId:"TW-040", category:"公司資料", chapter:"P3", difficulty:"medium", tags:["社區地址"], type:"multiple_choice",
+       learningObjective:"熟記雙橡園社區地址",
+       question:"「雙橡園1812」的地址位於？",
+       options:["A. 408台中市南屯區龍富路四段88號","B. 408台中市南屯區惠文路528號","C. 407台中市西屯區馬龍潭路1號","D. 406台中市北屯區仁平街99號"],
+       answer:"A",
+       explanation:"雙橡園1812→龍富路四段88號；B為1617→惠文路528號；C為2279→馬龍潭路；D為2925→仁平街99號。可用案名數字與路段數字的大小關聯來輔助記憶。",
+       source:{chapter:"P3",page:"3"}},
+
+      {id:146, knowledgeId:"TW-041", category:"公司資料", chapter:"P3", difficulty:"medium", tags:["工區位置"], type:"multiple_choice",
+       learningObjective:"熟記各工區相對位置地標",
+       question:"「雙橡園4117」工區鄰近下列哪個地標？",
+       options:["A. 水滴愛買、迪卡儂","B. 南興公園對面","C. 黎新公園旁","D. 龍瑞街"],
+       answer:"A",
+       explanation:"4117→北屯區中平路與經貿五路口(水滴愛買、迪卡儂旁)；B為2045→南興公園對面；C為1518→黎新公園旁；D與1920(龍瑞街)相關。",
+       source:{chapter:"P3",page:"3"}},
+
+      {id:147, knowledgeId:"TW-042", category:"公司資料", chapter:"P3", difficulty:"hard", tags:["雙橡園時間軸"], type:"ordering",
+       learningObjective:"熟記雙橡園品牌發展時間先後順序",
+       question:"請依時間先後順序排列雙橡園品牌發展重要里程碑：",
+       items:["2004年成立，深耕中台灣","2018年成立深耕物業，導入頂級餐飲","2020年雙橡園V1特區","2021年雙橡園1617","2022-2024年1812與S1特區","2025年興建中(2279、4117、1920、2045)"],
+       explanation:"雙橡園2004→2018→2020→2021→2022-2024→2025，每個階段都有標誌性個案。2022-2024更連續三年全市高價住宅成交第一，是品牌高峰。",
+       source:{chapter:"P3",page:"3"}},
+
+      // ── 豪宅服務進化 ──
+      {id:148, knowledgeId:"TW-043", category:"公司資料", chapter:"P2", difficulty:"medium", tags:["豪宅服務進化"], type:"matching",
+       learningObjective:"熟記豪宅1.0/2.0/3.0核心差異",
+       question:"請將豪宅版本與其核心必要項目配對：",
+       pairs:[
+         {left:"豪宅1.0", right:"社區私人泳池+24小時保全管理"},
+         {left:"豪宅2.0", right:"1.0+主廚進駐+豪華大廳+主廚進駐+櫃檯秘書"},
+         {left:"豪宅3.0", right:"1.0+2.0+自建物業管理+頂級餐飲團隊進駐"}
+       ],
+       explanation:"豪宅服務逐版疊加：1.0是基礎硬體(泳池+保全)，2.0加入軟性服務(主廚+大廳+秘書)，3.0再加入自建物業管理與頂級餐飲，是「雙橡園式酒店御邸」的完整形態。",
+       source:{chapter:"P2",page:"2"}},
+
+      {id:149, knowledgeId:"TW-043b", category:"公司資料", chapter:"P2", difficulty:"easy", tags:["豪宅服務進化"], type:"true_false",
+       learningObjective:"確認豪宅3.0包含1.0與2.0的所有服務",
+       question:"豪宅3.0包含豪宅1.0與2.0的所有必要服務，再加上自建物業管理與頂級餐飲團隊進駐。",
+       answer:"true",
+       explanation:"原文：豪宅3.0→1.0+2.0+自建物業+禮賓接駁+頂級餐飲團隊進駐，確認3.0是完全疊加而非取代，每個版本都是上一版本的超集合。",
+       source:{chapter:"P2",page:"2"}},
+
+      // ── 短答/問答型 ──
+      {id:150, knowledgeId:"TW-044", category:"管理與系統心法", chapter:"P1", difficulty:"medium", tags:["功夫進化"], type:"short_answer",
+       learningObjective:"能默寫功夫進化三步驟",
+       question:"請寫出「功夫進化」的三個步驟。",
+       answer:"①選擇對的事情 → ②把對的事情做完整 → ③持續精進並養成習慣",
+       explanation:"功夫進化的邏輯：先「選對」方向，再「做完整」執行，最後「養成習慣」讓正確行為內化，三步缺一不可，且必須依序完成。",
+       source:{chapter:"P1",page:"1"}},
+
+      {id:151, knowledgeId:"TW-045", category:"管理與系統心法", chapter:"P3", difficulty:"medium", tags:["深耕核心"], type:"short_answer",
+       learningObjective:"能默寫深耕核心經營理念",
+       question:"請寫出雙橡園「深耕核心經營理念」的完整內容。",
+       answer:"共同承擔管理責任，提升建築長期價值。",
+       explanation:"兩個關鍵詞：「共同承擔」(責任歸屬)、「長期價值」(時間維度)。深耕不是短期獲利，而是與住戶共同維護建築長遠的品質與價值。",
+       source:{chapter:"P3",page:"3"}},
+
+      {id:152, knowledgeId:"TW-046", category:"管理與系統心法", chapter:"P2", difficulty:"hard", tags:["39+1"], type:"short_answer",
+       learningObjective:"理解39+1的具體意涵",
+       question:"「39+1」代表什麼意涵？",
+       answer:"每周花1HR來沉澱思考（39小時工作+1小時思考沉澱）。",
+       explanation:"39+1強調在忙碌的工作節奏中，每週必須保留1小時自我反思與整理。思考時間是提升效能的關鍵投資，不是奢侈品。",
+       source:{chapter:"P2",page:"2"}}
+    ]
+  }
+};
+
+/* 題型中文標籤對照表 */
+const TYPE_LABELS = {
+  short_answer:"問答題", multiple_choice:"四選一",
+  multiple_select:"多選題", true_false:"是非題",
+  matching:"配對題", ordering:"排序題"
+};
+
+/* ====================================================================================
    二、題庫管理 (Bank Manager)
    ----------------------------------------------------------------------------------
    負責：載入題庫(預設+使用者匯入)、合併、取代、查詢題目、依條件篩選。
@@ -401,13 +931,23 @@ const BankManager = {
   // 目前記憶體中的題庫集合 { bankId: bankObj }
   banks: {},
 
-  // 初始化：優先讀取 LocalStorage 中使用者保存過的題庫，沒有的話才用內建預設題庫
+  // 初始化：合併兩份內建題庫（原始問答 + 多題型），再覆蓋用已儲存的使用者資料
   init(){
+    const builtIn = Object.assign({},
+      JSON.parse(JSON.stringify(defaultQuestionBanks)),
+      JSON.parse(JSON.stringify(typedQuestionBanks))
+    );
     const saved = Storage.loadBanks();
     if(saved && Object.keys(saved).length > 0){
+      // 若已有儲存資料，保留使用者自訂內容；
+      // 但若新版本新增了內建題庫(如本次多題型)，則自動補入不覆蓋
+      Object.keys(builtIn).forEach(bid=>{
+        if(!saved[bid]) saved[bid] = builtIn[bid];
+      });
       this.banks = saved;
+      Storage.saveBanks(this.banks);
     } else {
-      this.banks = JSON.parse(JSON.stringify(defaultQuestionBanks));
+      this.banks = builtIn;
       Storage.saveBanks(this.banks);
     }
   },
@@ -420,7 +960,7 @@ const BankManager = {
     return this.banks[bankId];
   },
 
-  // 驗證匯入資料是否符合題庫格式規範
+  // 驗證匯入資料格式（相容問答題與多題型）
   validateImportData(data){
     if(typeof data !== "object" || data === null) return "資料必須是一個 JSON 物件";
     const keys = Object.keys(data);
@@ -430,27 +970,44 @@ const BankManager = {
       if(!bank || typeof bank !== "object") return `題庫 "${k}" 格式錯誤`;
       if(!Array.isArray(bank.questions)) return `題庫 "${k}" 缺少 questions 陣列`;
       for(const q of bank.questions){
-        if(q.id === undefined || q.question === undefined || q.answer === undefined){
-          return `題庫 "${k}" 內有題目缺少必要欄位 (id / question / answer)`;
+        if(q.id === undefined || q.question === undefined){
+          return `題庫 "${k}" 內有題目缺少必要欄位 (id / question)`;
+        }
+        const t = q.type || "short_answer";
+        if((t==="multiple_choice"||t==="multiple_select") && !Array.isArray(q.options)){
+          return `題庫 "${k}" 中題目 ${q.id} 缺少 options 陣列`;
+        }
+        if(t==="matching" && !Array.isArray(q.pairs)){
+          return `題庫 "${k}" 中題目 ${q.id} 缺少 pairs 陣列`;
+        }
+        if(t==="ordering" && !Array.isArray(q.items)){
+          return `題庫 "${k}" 中題目 ${q.id} 缺少 items 陣列`;
         }
       }
     }
-    return null; // null 代表驗證通過
+    return null;
   },
 
-  // 新增題庫（不影響既有同名題庫以外的資料；若 id 重複則直接覆蓋該筆）
+  // 通用正規化：保留所有原始欄位，並補上必要預設值（相容兩種格式）
+  normalizeQuestion(q){
+    return Object.assign({}, q, {
+      category: q.category || "未分類",
+      chapter: q.chapter || "",
+      type: q.type || "short_answer",
+      keywords: Array.isArray(q.keywords) ? q.keywords : (Array.isArray(q.tags) ? q.tags : []),
+      tags: Array.isArray(q.tags) ? q.tags : [],
+      favorite: !!q.favorite
+    });
+  },
+
+  // 新增題庫（合併，不覆蓋既有同名題庫以外的資料）
   mergeImport(data){
     Object.keys(data).forEach(key=>{
       const bank = data[key];
       const bankId = bank.id || key;
       bank.id = bankId;
       bank.name = bank.name || key;
-      bank.questions = bank.questions.map(q=>({
-        id:q.id, category:q.category||"未分類", chapter:q.chapter||"",
-        question:q.question, answer:q.answer,
-        keywords:Array.isArray(q.keywords)?q.keywords:[],
-        favorite: !!q.favorite
-      }));
+      bank.questions = bank.questions.map(q=>this.normalizeQuestion(q));
       this.banks[bankId] = bank;
     });
     Storage.saveBanks(this.banks);
@@ -464,26 +1021,24 @@ const BankManager = {
       const bankId = bank.id || key;
       bank.id = bankId;
       bank.name = bank.name || key;
-      bank.questions = bank.questions.map(q=>({
-        id:q.id, category:q.category||"未分類", chapter:q.chapter||"",
-        question:q.question, answer:q.answer,
-        keywords:Array.isArray(q.keywords)?q.keywords:[],
-        favorite: !!q.favorite
-      }));
+      bank.questions = bank.questions.map(q=>this.normalizeQuestion(q));
       newBanks[bankId] = bank;
     });
     this.banks = newBanks;
     Storage.saveBanks(this.banks);
   },
 
-  // 匯出目前全部題庫為格式化 JSON 字串
+  // 匯出目前全部題庫為格式化 JSON
   exportAllAsJSON(){
     return JSON.stringify(this.banks, null, 2);
   },
 
-  // 還原為內建預設題庫
+  // 還原為兩份內建預設題庫
   resetToDefault(){
-    this.banks = JSON.parse(JSON.stringify(defaultQuestionBanks));
+    this.banks = Object.assign({},
+      JSON.parse(JSON.stringify(defaultQuestionBanks)),
+      JSON.parse(JSON.stringify(typedQuestionBanks))
+    );
     Storage.saveBanks(this.banks);
   },
 
@@ -502,8 +1057,9 @@ const BankManager = {
       list = list.filter(q=>
         String(q.id).includes(kw) ||
         q.question.toLowerCase().includes(kw) ||
-        q.answer.toLowerCase().includes(kw) ||
-        (q.keywords||[]).some(k=>k.toLowerCase().includes(kw))
+        (q.answer ? String(q.answer).toLowerCase().includes(kw) : false) ||
+        (q.keywords||[]).some(k=>k.toLowerCase().includes(kw)) ||
+        (q.tags||[]).some(k=>k.toLowerCase().includes(kw))
       );
     }
     if(onlyFavorite){
@@ -810,14 +1366,16 @@ const View = {
     } else {
       list.forEach(q=>{
         const isFav = progress.favorites.includes(q.id);
+        const typeLabel = q.type ? (TYPE_LABELS[q.type] || "問答題") : "問答題";
         html += `
         <div class="card qa-card">
           <div class="qa-meta">
-            <span class="qa-id">No.${q.id}</span>
+            <span class="qa-id">No.${q.id}<span class="type-badge">${typeLabel}</span></span>
             <span class="qa-tag">${Utils.escapeHtml(q.category||"")}${q.chapter? " · "+Utils.escapeHtml(q.chapter):""}</span>
           </div>
           <div class="qa-q">${Utils.escapeHtml(q.question)}</div>
-          <div class="qa-a">${Utils.escapeHtml(q.answer)}</div>
+          <div class="qa-a">${View.renderBrowseAnswer(q)}</div>
+          ${q.explanation ? `<div class="qa-a" style="margin-top:8px;color:var(--text-dim);font-size:13px;">💡 ${Utils.escapeHtml(q.explanation)}</div>` : ""}
           <div class="qa-actions">
             <button class="star-btn ${isFav?'active':''}" data-action="toggleFav" data-qid="${q.id}">${isFav?'★':'☆'}</button>
           </div>
@@ -834,6 +1392,30 @@ const View = {
         const i2 = document.getElementById("browseSearchInput");
         if(i2){ i2.focus(); i2.setSelectionRange(i2.value.length, i2.value.length); }
       });
+    }
+  },
+
+  // 瀏覽模式：依題型顯示答案預覽
+  renderBrowseAnswer(q){
+    const E = Utils.escapeHtml;
+    switch(q.type){
+      case "multiple_choice":
+      case "multiple_select": {
+        const ansArr = Array.isArray(q.answer) ? q.answer : [q.answer];
+        return (q.options||[]).map(opt=>{
+          const letter = opt.trim().charAt(0);
+          const isAns = ansArr.includes(letter);
+          return `<div style="${isAns?'color:var(--ok);font-weight:700;':'color:#aaa;'}">${isAns?'✓ ':' '}${E(opt)}</div>`;
+        }).join("");
+      }
+      case "true_false":
+        return `正確答案：<b style="color:var(--ok);">${q.answer==="true"?"✅ 正確":"❌ 錯誤"}</b>`;
+      case "matching":
+        return (q.pairs||[]).map(p=>`<span style="color:var(--gold);font-weight:700;">${E(p.left)}</span> → ${E(p.right)}`).join("<br>");
+      case "ordering":
+        return (q.items||[]).map((it,i)=>`${i+1}. ${E(it)}`).join("<br>");
+      default:
+        return E(q.answer||"");
     }
   },
 
@@ -883,8 +1465,17 @@ const View = {
     const progress = Storage.getBankProgress(bankId);
     const isFav = progress.favorites.includes(q.id);
     this.setTopbarTitle(this.state.quizSourceLabel);
-
     Storage.setLastRead(bankId, {mode:"quiz", index:this.state.quizIndex});
+
+    // 重置本題互動狀態
+    this.state.quizSubmitted = false;
+    this.state.quizSelected = [];
+    this.state.quizMatchAnswers = {};
+    this.state.quizOrderBuilt = [];
+    this.state.quizOrderPool = (q.type==="ordering") ? Utils.shuffle(q.items.map((t,i)=>({text:t,key:i}))) : [];
+    this.state.quizMatchRightPool = (q.type==="matching") ? Utils.shuffle(q.pairs.map(p=>p.right)) : [];
+
+    const typeLabel = TYPE_LABELS[q.type] || "問答題";
 
     this.$main.innerHTML = `
       <div class="back-link" data-action="backToBankHome">← 返回模式選擇</div>
@@ -894,24 +1485,194 @@ const View = {
           <button class="star-btn ${isFav?'active':''}" data-action="toggleFav" data-qid="${q.id}" style="font-size:24px;">${isFav?'★':'☆'}</button>
         </div>
         <div class="quiz-card" id="quizCard">
-          <div class="qtag">No.${q.id} · ${Utils.escapeHtml(q.category||"")}</div>
+          <div class="qtag">No.${q.id} · ${Utils.escapeHtml(q.category||"")}<span class="type-badge">${typeLabel}</span></div>
           <div class="qtext">${Utils.escapeHtml(q.question)}</div>
-          <div class="atext">${Utils.escapeHtml(q.answer)}</div>
-          <button class="btn reveal-btn" data-action="revealAnswer">👁️ 顯示答案</button>
+          <div id="quizBody">${this.buildQuizBody(q)}</div>
+          <div id="resultSlot"></div>
+          <div class="explain-box">
+            <div class="explain-label">💡 解析</div>
+            <div class="explain-text">${Utils.escapeHtml(q.explanation||"")}</div>
+          </div>
         </div>
-        <div class="quiz-bottom-actions">
+        <div class="quiz-bottom-actions" id="judgeRow" style="display:none;">
           <button class="judge-btn unknow" data-action="judge" data-know="0">❌ 不熟</button>
           <button class="judge-btn know" data-action="judge" data-know="1">✅ 已會</button>
         </div>
-        <div class="swipe-hint">👈 左右滑動切換題目　／　電腦可用 ← → 與空白鍵</div>
+        <div class="swipe-hint">👈 左右滑動切換題目　／　電腦可用 ← →</div>
       </div>
     `;
     this.bindSwipe();
   },
 
-  revealAnswer(){
+  // 依題型建立答題互動區
+  buildQuizBody(q){
+    const E = Utils.escapeHtml;
+    switch(q.type){
+      case "multiple_choice":
+        return `<div class="opt-list" id="optList">
+          ${q.options.map(opt=>`<div class="opt-item" data-action="selectOption" data-letter="${opt.trim().charAt(0)}">${E(opt)}</div>`).join("")}
+        </div>`;
+      case "multiple_select":
+        return `<div class="opt-list" id="optList">
+          ${q.options.map(opt=>`<div class="opt-item" data-action="toggleOption" data-letter="${opt.trim().charAt(0)}">${E(opt)}</div>`).join("")}
+          <button class="btn" data-action="submitMultiSelect" style="margin-top:8px;">✅ 提交答案</button>
+        </div>`;
+      case "true_false":
+        return `<div class="tf-row" id="tfRow">
+          <div class="tf-btn" data-action="selectTF" data-val="true">⭕ 正確</div>
+          <div class="tf-btn" data-action="selectTF" data-val="false">❌ 錯誤</div>
+        </div>`;
+      case "matching": {
+        const rightOpts = this.state.quizMatchRightPool;
+        return `<div id="matchArea">
+          ${q.pairs.map((p,i)=>`
+            <div class="match-row">
+              <div class="match-left">${E(p.left)}</div>
+              <select data-action="matchSelect" data-idx="${i}">
+                <option value="">── 請選擇 ──</option>
+                ${rightOpts.map(r=>`<option value="${E(r)}">${E(r)}</option>`).join("")}
+              </select>
+            </div>`).join("")}
+          <button class="btn" data-action="submitMatching" style="margin-top:14px;">✅ 提交配對</button>
+        </div>`;
+      }
+      case "ordering":
+        return `<div id="orderArea">
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px;">請依序點選下方選項：</div>
+          <div class="order-built" id="orderBuilt"><span style="color:var(--text-dim);font-size:13px;">（點選下方選項放入此處）</span></div>
+          <div class="order-pool" id="orderPool">
+            ${this.state.quizOrderPool.map(o=>`<div class="order-chip-src" data-action="pickOrder" data-key="${o.key}">${Utils.escapeHtml(o.text)}</div>`).join("")}
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button class="btn secondary" data-action="resetOrder" style="flex:0 0 auto;width:auto;padding:10px 16px;">↺ 重置</button>
+            <button class="btn" data-action="submitOrdering">✅ 提交排序</button>
+          </div>
+        </div>`;
+      default: // short_answer
+        return `<div class="atext" style="display:none;">${Utils.escapeHtml(q.answer||"")}</div>
+          <button class="btn reveal-btn" data-action="revealAnswer">👁️ 顯示答案</button>`;
+    }
+  },
+
+  // 顯示判斷結果，展開解析，並顯示「已會/不熟」按鈕
+  showResult(isCorrect){
     const card = document.getElementById("quizCard");
     if(card) card.classList.add("show-answer");
+    const slot = document.getElementById("resultSlot");
+    if(slot && typeof isCorrect === "boolean"){
+      slot.innerHTML = `<div class="result-banner ${isCorrect?'right':'wrong'}">${isCorrect?"🎉 答對了！":"😅 答錯了，請看解析"}</div>`;
+    }
+    const judgeRow = document.getElementById("judgeRow");
+    if(judgeRow) judgeRow.style.display = "flex";
+    this.state.quizSubmitted = true;
+  },
+
+  // ── 四選一 ──
+  selectOption(letter){
+    if(this.state.quizSubmitted) return;
+    const q = this.state.quizQueue[this.state.quizIndex];
+    document.querySelectorAll("#optList .opt-item").forEach(el=>{
+      el.classList.add("disabled-hover");
+      if(el.dataset.letter===q.answer) el.classList.add("correct");
+      else if(el.dataset.letter===letter) el.classList.add("incorrect");
+    });
+    this.showResult(letter===q.answer);
+  },
+
+  // ── 多選題 ──
+  toggleOption(letter, el){
+    if(this.state.quizSubmitted) return;
+    const idx = this.state.quizSelected.indexOf(letter);
+    if(idx>=0){ this.state.quizSelected.splice(idx,1); el.classList.remove("selected"); }
+    else { this.state.quizSelected.push(letter); el.classList.add("selected"); }
+  },
+  submitMultiSelect(){
+    if(this.state.quizSubmitted) return;
+    const q = this.state.quizQueue[this.state.quizIndex];
+    const correct = new Set(Array.isArray(q.answer)?q.answer:[q.answer]);
+    const selected = new Set(this.state.quizSelected);
+    const isOK = correct.size===selected.size && [...correct].every(l=>selected.has(l));
+    document.querySelectorAll("#optList .opt-item").forEach(el=>{
+      el.classList.add("disabled-hover");
+      if(correct.has(el.dataset.letter)) el.classList.add("correct");
+      else if(selected.has(el.dataset.letter)) el.classList.add("incorrect");
+    });
+    this.showResult(isOK);
+  },
+
+  // ── 是非題 ──
+  selectTF(val){
+    if(this.state.quizSubmitted) return;
+    const q = this.state.quizQueue[this.state.quizIndex];
+    document.querySelectorAll("#tfRow .tf-btn").forEach(el=>{
+      if(el.dataset.val===q.answer) el.classList.add("correct");
+      else if(el.dataset.val===val) el.classList.add("incorrect");
+    });
+    this.showResult(val===q.answer);
+  },
+
+  // ── 配對題 ──
+  matchSelect(idx, value){ this.state.quizMatchAnswers[idx] = value; },
+  submitMatching(){
+    if(this.state.quizSubmitted) return;
+    const q = this.state.quizQueue[this.state.quizIndex];
+    let allOK = true;
+    q.pairs.forEach((p,i)=>{
+      const userAns = this.state.quizMatchAnswers[i] || "";
+      if(userAns !== p.right) allOK = false;
+      const sel = document.querySelector(`select[data-idx="${i}"]`);
+      if(sel){ sel.disabled=true; sel.className += userAns===p.right ? " ok" : " ng"; }
+    });
+    this.showResult(allOK);
+  },
+
+  // ── 排序題 ──
+  pickOrder(key){
+    if(this.state.quizSubmitted) return;
+    if(this.state.quizOrderBuilt.includes(key)) return;
+    this.state.quizOrderBuilt.push(key);
+    this.refreshOrderUI();
+  },
+  resetOrder(){
+    if(this.state.quizSubmitted) return;
+    this.state.quizOrderBuilt = [];
+    this.refreshOrderUI();
+  },
+  refreshOrderUI(){
+    const built = document.getElementById("orderBuilt");
+    if(built){
+      built.innerHTML = this.state.quizOrderBuilt.length
+        ? this.state.quizOrderBuilt.map((key,pos)=>{
+            const it = this.state.quizOrderPool.find(o=>o.key===key);
+            return `<div class="order-chip">${pos+1}. ${Utils.escapeHtml(it.text)}</div>`;
+          }).join("")
+        : `<span style="color:var(--text-dim);font-size:13px;">（點選下方選項放入此處）</span>`;
+    }
+    document.querySelectorAll("#orderPool .order-chip-src").forEach(el=>{
+      el.classList.toggle("used", this.state.quizOrderBuilt.includes(parseInt(el.dataset.key,10)));
+    });
+  },
+  submitOrdering(){
+    if(this.state.quizSubmitted) return;
+    const q = this.state.quizQueue[this.state.quizIndex];
+    if(this.state.quizOrderBuilt.length !== q.items.length){
+      Utils.toast("請先排列完所有選項再提交"); return;
+    }
+    const builtTexts = this.state.quizOrderBuilt.map(key=>this.state.quizOrderPool.find(o=>o.key===key).text);
+    this.showResult(builtTexts.every((t,i)=>t===q.items[i]));
+  },
+
+  // ── 問答題顯示答案 ──
+  revealAnswer(){
+    const card = document.getElementById("quizCard");
+    if(card){
+      card.classList.add("show-answer");
+      const atext = card.querySelector(".atext");
+      if(atext) atext.style.display = "block";
+    }
+    const judgeRow = document.getElementById("judgeRow");
+    if(judgeRow) judgeRow.style.display = "flex";
+    this.state.quizSubmitted = true;
   },
 
   nextQuiz(){
@@ -935,19 +1696,17 @@ const View = {
   bindSwipe(){
     const card = document.getElementById("quizCard");
     if(!card) return;
-    let startX=0, startY=0, moved=false;
-    card.addEventListener("touchstart", e=>{
-      startX = e.touches[0].clientX; startY = e.touches[0].clientY; moved=false;
-    }, {passive:true});
-    card.addEventListener("touchmove", ()=>{ moved=true; }, {passive:true});
+    let sx=0, sy=0, moved=false;
+    card.addEventListener("touchstart", e=>{ sx=e.touches[0].clientX; sy=e.touches[0].clientY; moved=false; },{passive:true});
+    card.addEventListener("touchmove", ()=>{ moved=true; },{passive:true});
     card.addEventListener("touchend", e=>{
       if(!moved) return;
-      const dx = e.changedTouches[0].clientX - startX;
-      const dy = e.changedTouches[0].clientY - startY;
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = e.changedTouches[0].clientY - sy;
       if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)){
         if(dx<0) View.nextQuiz(); else View.prevQuiz();
       }
-    }, {passive:true});
+    },{passive:true});
   },
 
   // ------------------------------- 共用導覽 -------------------------------
@@ -968,6 +1727,7 @@ document.addEventListener("click", function(e){
   const action = target.dataset.action;
 
   switch(action){
+    // ── 導覽 ──
     case "openBank":
       View.openBank(target.dataset.bank);
       break;
@@ -981,16 +1741,22 @@ document.addEventListener("click", function(e){
       Storage.setTodayGoal(View.state.bankId, parseInt(target.dataset.goal,10));
       View.renderBankHome(View.state.bankId);
       break;
+
+    // ── 瀏覽 ──
     case "startBrowse":
       View.startBrowse(View.state.bankId);
-      break;
-    case "startQuiz":
-      View.startQuiz(View.state.bankId, target.dataset.source);
       break;
     case "filterCategory":
       View.state.browseCategory = target.dataset.cat;
       View.renderBrowse();
       break;
+
+    // ── 測驗入口 ──
+    case "startQuiz":
+      View.startQuiz(View.state.bankId, target.dataset.source);
+      break;
+
+    // ── 收藏（瀏覽 & 測驗共用）──
     case "toggleFav": {
       const qid = parseInt(target.dataset.qid,10);
       const nowFav = Storage.toggleFavorite(View.state.bankId, qid);
@@ -998,9 +1764,47 @@ document.addEventListener("click", function(e){
       target.classList.toggle("active", nowFav);
       break;
     }
+
+    // ── 問答題：顯示答案 ──
     case "revealAnswer":
       View.revealAnswer();
       break;
+
+    // ── 四選一：點選即作答 ──
+    case "selectOption":
+      View.selectOption(target.dataset.letter);
+      break;
+
+    // ── 多選題：勾選 / 提交 ──
+    case "toggleOption":
+      View.toggleOption(target.dataset.letter, target);
+      break;
+    case "submitMultiSelect":
+      View.submitMultiSelect();
+      break;
+
+    // ── 是非題 ──
+    case "selectTF":
+      View.selectTF(target.dataset.val);
+      break;
+
+    // ── 配對題：提交 ──
+    case "submitMatching":
+      View.submitMatching();
+      break;
+
+    // ── 排序題：點選 / 重置 / 提交 ──
+    case "pickOrder":
+      View.pickOrder(parseInt(target.dataset.key,10));
+      break;
+    case "resetOrder":
+      View.resetOrder();
+      break;
+    case "submitOrdering":
+      View.submitOrdering();
+      break;
+
+    // ── 已會 / 不熟（所有題型共用）──
     case "judge": {
       const know = target.dataset.know === "1";
       const q = View.state.quizQueue[View.state.quizIndex];
@@ -1012,12 +1816,28 @@ document.addEventListener("click", function(e){
   }
 });
 
-// 鍵盤操作：← → 切換題目；空白鍵顯示答案
+// 配對題的 select 用 change 事件（非 click）
+document.addEventListener("change", function(e){
+  const sel = e.target.closest("select[data-action='matchSelect']");
+  if(!sel) return;
+  View.matchSelect(parseInt(sel.dataset.idx, 10), sel.value);
+});
+
+// 鍵盤：← → 切題；空白鍵只對問答題顯示答案（互動題型不適用）
 document.addEventListener("keydown", function(e){
   if(View.state.screen !== "quiz") return;
+  // 若焦點在輸入元件內，不攔截
+  if(["INPUT","SELECT","TEXTAREA"].includes(document.activeElement.tagName)) return;
   if(e.code === "ArrowRight"){ View.nextQuiz(); }
   else if(e.code === "ArrowLeft"){ View.prevQuiz(); }
-  else if(e.code === "Space"){ e.preventDefault(); View.revealAnswer(); }
+  else if(e.code === "Space"){
+    e.preventDefault();
+    const q = View.state.quizQueue[View.state.quizIndex];
+    // 空白鍵只對問答題有效，且未作答時才觸發
+    if(!View.state.quizSubmitted && (!q.type || q.type === "short_answer")){
+      View.revealAnswer();
+    }
+  }
 });
 
 // -------------------- 設定面板（匯入 / 匯出）--------------------
